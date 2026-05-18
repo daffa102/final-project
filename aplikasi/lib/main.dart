@@ -1,86 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'core/database/database_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' hide Consumer, Provider, ChangeNotifierProvider;
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'core/database/app_database.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/pos/providers/pos_provider.dart';
 import 'features/closing/providers/closing_provider.dart'; 
-import 'features/auth/screens/login_screen.dart';
-import 'features/main_wrapper.dart'; // Diganti ke Wrapper Mobile
+import 'features/finance/providers/finance_provider.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
+import 'core/api/sync_provider.dart';
+import 'core/services/notification_service.dart';
+import 'core/navigation/navigation_provider.dart';
+import 'core/widgets/splash_screen.dart';
+import 'core/widgets/onboarding_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inisialisasi awal database lokal (Lewati jika di web)
-  if (!kIsWeb) {
-    await DatabaseHelper.instance.database;
-  }
+  await NotificationService().init();
+
+  final database = AppDatabase();
+  final prefs = await SharedPreferences.getInstance();
+  final isFirstLaunch = prefs.getBool('firstLaunch') ?? true;
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => PosProvider()),
-        ChangeNotifierProvider(create: (_) => ClosingProvider()), 
-      ],
-      child: const MyApp(),
+    ProviderScope(
+      child: MultiProvider(
+        providers: [
+          Provider<AppDatabase>(create: (_) => database),
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (context) => PosProvider(database: context.read<AppDatabase>())),
+          ChangeNotifierProvider(create: (context) => ClosingProvider(database: context.read<AppDatabase>())),
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (context) => SyncProvider(database: context.read<AppDatabase>())),
+          ChangeNotifierProvider(create: (context) => FinanceProvider(database: context.read<AppDatabase>())),
+          ChangeNotifierProvider(create: (_) => NavigationProvider()),
+        ],
+        child: MyApp(isFirstLaunch: isFirstLaunch),
+      ),
     ),
   );
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  bool _isCheckingSession = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkInitSession();
-  }
-
-  Future<void> _checkInitSession() async {
-    // Mengecek apakah sudah login (ada token)
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.checkSession();
-    
-    if (mounted) {
-      setState(() {
-        _isCheckingSession = false;
-      });
-    }
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key, required this.isFirstLaunch});
+  final bool isFirstLaunch;
 
   @override
   Widget build(BuildContext context) {
-    if (_isCheckingSession) {
-      return const MaterialApp(
-        home: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-      );
-    }
-
-    return MaterialApp(
-      title: 'UMKM POS Mobile',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
-      // Logic Redirection (Memaksa ke LoginScreen jika token tidak ada)
-      home: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
-          if (auth.isAuthenticated) {
-            return const MainWrapper();
-          }
-          return const LoginScreen();
-        },
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return ScreenUtilInit(
+          designSize: const Size(390, 844),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return MaterialApp(
+              navigatorKey: navigatorKey,
+              title: 'Kash POS',
+              debugShowCheckedModeBanner: false,
+              themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              // Home ditentukan oleh status launch pertama
+              home: isFirstLaunch ? const OnboardingScreen() : const SplashScreen(),
+            );
+          },
+        );
+      },
     );
   }
 }

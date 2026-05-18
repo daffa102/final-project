@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/closing_provider.dart';
 
 class DailyClosingScreen extends StatefulWidget {
@@ -62,6 +63,9 @@ class _DailyClosingScreenState extends State<DailyClosingScreen> {
           padding: const EdgeInsets.all(24),
           child: Consumer<ClosingProvider>(
             builder: (context, provider, child) {
+              final theme = Theme.of(context);
+              final isDark = theme.brightness == Brightness.dark;
+              
               if (provider.isLoading && provider.expectedCash == 0) {
                  return const CircularProgressIndicator();
               }
@@ -87,27 +91,40 @@ class _DailyClosingScreenState extends State<DailyClosingScreen> {
                         ),
                         const Divider(height: 48),
 
-                        // Pendapatan Sistem
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Sistem (Expected):', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                            Text(currencyFormat.format(provider.expectedCash), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                          ],
+                        // Detail Akumulasi
+                        Container(
+                          padding: EdgeInsets.all(16.w),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildSummaryRow('Total Penjualan', provider.totalSales, isDark, isBold: true),
+                              const Divider(),
+                              _buildSummaryRow('Tunai (Expected)', provider.expectedCash, isDark),
+                              _buildSummaryRow('QRIS', provider.qrisAmount, isDark),
+                              _buildSummaryRow('Transfer', provider.transferAmount, isDark),
+                              const Divider(),
+                              _buildSummaryRow('Total Transaksi', provider.totalTrx.toDouble(), isDark, isCurrency: false),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 24),
-
+                        
+                        const SizedBox(height: 32),
+                        
                         // Input Uang Laci Faktual
                         TextField(
                           controller: _actualCashController,
                           keyboardType: TextInputType.number,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                           decoration: InputDecoration(
-                            labelText: 'Uang Fisik di Laci Laporan (Actual)',
+                            labelText: 'Uang Fisik di Laci (Tunai)',
+                            labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
                             prefixText: 'Rp ',
                             filled: true,
-                            fillColor: Colors.blueGrey.shade50,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                            fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.blueGrey.shade50,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide.none),
                           ),
                           onChanged: (val) {
                             final double parsed = double.tryParse(val.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0.0;
@@ -173,6 +190,26 @@ class _DailyClosingScreenState extends State<DailyClosingScreen> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, double value, bool isDark, {bool isBold = false, bool isCurrency = true}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14.sp)),
+          Text(
+            isCurrency ? currencyFormat.format(value) : value.toInt().toString(),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 16.sp,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -83,17 +83,22 @@ class SyncController extends Controller
     public function performClosing(Request $request)
     {
         $request->validate([
-            'date' => 'required|date',
+            'date' => 'required_without:closing_date|date',
+            'closing_date' => 'required_without:date|date',
             'actual_cash' => 'required|numeric|min:0',
-            'note' => 'nullable|string'
+            'note' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
+
+        $date = $request->input('date') ?? $request->input('closing_date');
+        $note = $request->input('note') ?? $request->input('notes');
 
         try {
             $closing = $this->dailyClosingService->performClosing(
                 $request->user()->id,
-                $request->date,
+                $date,
                 $request->actual_cash,
-                $request->note
+                $note
             );
 
             return response()->json([

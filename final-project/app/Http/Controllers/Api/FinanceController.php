@@ -7,6 +7,9 @@ use App\Models\Expense;
 use App\Models\Income;
 use App\Services\FinanceService;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Exception;
 
 class FinanceController extends Controller
@@ -16,6 +19,97 @@ class FinanceController extends Controller
     public function __construct(FinanceService $financeService)
     {
         $this->financeService = $financeService;
+    }
+
+    public function summary(Request $request)
+    {
+        $userId = $request->user()->id;
+        $month = $request->query('month', now()->month);
+        $year = $request->query('year', now()->year);
+
+        $revenue = DB::table('transactions')
+            ->where('user_id', $userId)
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->where('status', 'completed')
+            ->sum('total_amount');
+
+        $grossProfit = DB::table('transaction_items')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->where('transactions.user_id', $userId)
+            ->whereYear('transactions.created_at', $year)
+            ->whereMonth('transactions.created_at', $month)
+            ->where('transactions.status', 'completed')
+            ->sum(DB::raw('(transaction_items.selling_price - products.buying_price) * transaction_items.quantity'));
+
+        $otherIncome = Income::where('user_id', $userId)
+            ->whereYear('income_date', $year)
+            ->whereMonth('income_date', $month)
+            ->sum('amount');
+
+        $expenses = Expense::where('user_id', $userId)
+            ->whereYear('expense_date', $year)
+            ->whereMonth('expense_date', $month)
+            ->sum('amount');
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'revenue' => (float)$revenue,
+                'gross_profit' => (float)$grossProfit,
+                'other_income' => (float)$otherIncome,
+                'expenses' => (float)$expenses,
+                'net_profit' => (float)($grossProfit + $otherIncome - $expenses),
+            ]
+        ]);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $userId = $request->user()->id;
+        $month = $request->query('month', now()->month);
+        $year = $request->query('year', now()->year);
+        
+        // Ambil data untuk laporan sesuai user yang login
+        $revenue = DB::table('transactions')
+            ->where('user_id', $userId)
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->where('status', 'completed')
+            ->sum('total_amount');
+
+        $grossProfit = DB::table('transaction_items')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->where('transactions.user_id', $userId)
+            ->whereYear('transactions.created_at', $year)
+            ->whereMonth('transactions.created_at', $month)
+            ->where('transactions.status', 'completed')
+            ->sum(DB::raw('(transaction_items.selling_price - products.buying_price) * transaction_items.quantity'));
+
+        $otherIncome = Income::where('user_id', $userId)
+            ->whereYear('income_date', $year)
+            ->whereMonth('income_date', $month)
+            ->sum('amount');
+
+        $expenses = Expense::where('user_id', $userId)
+            ->whereYear('expense_date', $year)
+            ->whereMonth('expense_date', $month)
+            ->sum('amount');
+
+        $data = [
+            'month' => Carbon::createFromDate($year, $month, 1)->format('F Y'),
+            'revenue' => (float)$revenue,
+            'gross_profit' => (float)$grossProfit,
+            'other_income' => (float)$otherIncome,
+            'expenses' => (float)$expenses,
+            'net_profit' => (float)($grossProfit + $otherIncome - $expenses),
+            'user' => $request->user()
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.finance_report', $data);
+        return $pdf->stream('laporan-keuangan-'.$month.'-'.$year.'.pdf');
     }
 
     public function incomes(Request $request)

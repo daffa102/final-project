@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../../../core/api/api_service.dart';
-import '../../../core/database/database_helper.dart';
+import '../../../core/database/app_database.dart';
 
 class ClosingProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final AppDatabase database;
+
+  ClosingProvider({required this.database});
   
   bool _isLoading = false;
   String? _error;
@@ -12,12 +15,20 @@ class ClosingProvider with ChangeNotifier {
   double _expectedCash = 0.0;
   double _actualCash = 0.0;
   String _notes = '';
+  double _qrisAmount = 0.0;
+  double _transferAmount = 0.0;
+  double _totalSales = 0.0;
+  int _totalTrx = 0;
 
   bool get isLoading => _isLoading;
   String? get error => _error;
   double get expectedCash => _expectedCash;
   double get actualCash => _actualCash;
   double get difference => _actualCash - _expectedCash;
+  double get qrisAmount => _qrisAmount;
+  double get transferAmount => _transferAmount;
+  double get totalSales => _totalSales;
+  int get totalTrx => _totalTrx;
 
   // 1. Hitung uang yang BERHARAP ada di laci (Expected Cash)
   Future<void> fetchExpectedCash() async {
@@ -25,9 +36,19 @@ class ClosingProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _expectedCash = await DatabaseHelper.instance.getExpectedCashForToday();
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final response = await _apiService.client.get('/closing-summary', queryParameters: {'date': today});
+      
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        final data = response.data['data'];
+        _expectedCash = (data['cash_amount'] ?? 0).toDouble();
+        _qrisAmount = (data['qris_amount'] ?? 0).toDouble();
+        _transferAmount = (data['transfer_amount'] ?? 0).toDouble();
+        _totalSales = (data['total_sales'] ?? 0).toDouble();
+        _totalTrx = (data['total_transactions'] ?? 0).toInt();
+      }
     } catch (e) {
-      _error = "Gagal mengambil data pendapatan lokal: $e";
+      _error = "Gagal mengambil data pendapatan: $e";
     }
 
     _isLoading = false;
@@ -57,13 +78,15 @@ class ClosingProvider with ChangeNotifier {
         'actual_cash': _actualCash,
         'difference': difference,
         'notes': _notes,
+        'note': _notes,
+        'date': DateTime.now().toIso8601String().substring(0, 10), // YYYY-MM-DD
         'closing_date': DateTime.now().toIso8601String(),
       };
 
       // Tembak laporan ke Web Backend (Laravel)
       final response = await _apiService.client.post('/daily-closing', data: payload);
 
-      if ((response.statusCode == 200 || response.statusCode == 201) && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         _isLoading = false;
         notifyListeners();
         return true;
@@ -71,7 +94,16 @@ class ClosingProvider with ChangeNotifier {
         _error = response.data['message'] ?? 'Berhasil disimpan lokal, tetapi gagal melapor ke server utama.';
       }
     } on DioException catch (e) {
-      _error = "Server tidak merespon: ${e.response?.data['message'] ?? e.message}";
+      if (e.response?.statusCode == 422) {
+        final errors = e.response?.data['errors'];
+        if (errors != null && errors is Map) {
+          _error = errors.values.first is List ? errors.values.first[0] : errors.values.first.toString();
+        } else {
+          _error = e.response?.data['message'] ?? 'Data tidak valid';
+        }
+      } else {
+        _error = "Server tidak merespon: ${e.response?.data?['message'] ?? e.message}";
+      }
     } catch (e) {
       _error = e.toString();
     }

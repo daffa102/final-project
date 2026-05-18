@@ -18,6 +18,9 @@ class DailyClosing extends Model
         'cash_amount',
         'qris_amount',
         'transfer_amount',
+        'actual_cash',
+        'difference',
+        'note',
         'net_profit',
     ];
 
@@ -29,6 +32,8 @@ class DailyClosing extends Model
             'cash_amount'       => 'decimal:2',
             'qris_amount'       => 'decimal:2',
             'transfer_amount'   => 'decimal:2',
+            'actual_cash'       => 'decimal:2',
+            'difference'        => 'decimal:2',
             'net_profit'        => 'decimal:2',
         ];
     }

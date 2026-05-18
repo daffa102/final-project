@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,6 +12,16 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
+        // TEMPORARY FIX: Recalculate profit for old transactions
+        Transaction::where('profit', 0)->get()->each(function($t) {
+            $sum = 0;
+            foreach($t->items as $item) {
+                $p = Product::find($item->product_id);
+                if($p) $sum += ($item->selling_price - $p->buying_price) * $item->quantity;
+            }
+            if($sum > 0) { $t->profit = $sum; $t->save(); }
+        });
+
         $query = Product::where('user_id', $request->user()->id)->with('category');
 
         if ($request->has('search')) {
@@ -18,7 +29,7 @@ class ProductController extends Controller
                   ->orWhere('sku', 'like', '%' . $request->search . '%');
         }
 
-        $products = $query->paginate(15);
+        $products = $query->get();
         
         return response()->json([
             'status' => 'success',
@@ -65,7 +76,7 @@ class ProductController extends Controller
         ], 201);
     }
 
-    public function show($id, Request $request)
+    public function show(string $id, Request $request)
     {
         $product = Product::where('user_id', $request->user()->id)->with('category')->findOrFail($id);
         
@@ -75,7 +86,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
         $product = Product::where('user_id', $request->user()->id)->findOrFail($id);
 
@@ -85,6 +96,7 @@ class ProductController extends Controller
             'sku' => 'nullable|string|max:50',
             'selling_price' => 'required|numeric|min:0',
             'buying_price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0', // Added stock
             'min_stock' => 'required|integer|min:0',
             'is_active' => 'boolean',
             'image_url' => 'nullable|image|max:2048'
@@ -102,10 +114,10 @@ class ProductController extends Controller
             'sku' => $request->sku,
             'selling_price' => $request->selling_price,
             'buying_price' => $request->buying_price,
+            'stock' => $request->stock, // Now it actually updates!
             'min_stock' => $request->min_stock,
             'is_active' => $request->is_active ?? $product->is_active,
             'image_url' => $imagePath,
-            // stock is managed via StockService, not direct update
         ]);
 
         return response()->json([
@@ -115,7 +127,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function destroy($id, Request $request)
+    public function destroy(string $id, Request $request)
     {
         $product = Product::where('user_id', $request->user()->id)->findOrFail($id);
         $product->delete();

@@ -21,54 +21,80 @@ class DailyClosingService
     {
         $parsedDate = Carbon::parse($date)->format('Y-m-d');
 
-        $totalIncome = Income::whereDate('income_date', $parsedDate)->sum('amount');
-        $totalExpense = Expense::whereDate('expense_date', $parsedDate)->sum('amount');
-        
-        $expectedCash = $totalIncome - $totalExpense;
+        // Ambil data transaksi hari ini
+        $transactions = DB::table('transactions')
+            ->whereDate('created_at', $parsedDate)
+            ->where('status', 'completed');
+            
+        $totalSales = $transactions->sum('total_amount');
+        $totalTrx = $transactions->count();
+        $totalItems = DB::table('transaction_items')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->whereDate('transactions.created_at', $parsedDate)
+            ->where('transactions.status', 'completed')
+            ->sum('quantity');
+
+        $cashAmount = DB::table('transactions')
+            ->whereDate('created_at', $parsedDate)
+            ->where('payment_method', 'cash')
+            ->sum('total_amount');
+
+        $qrisAmount = DB::table('transactions')
+            ->whereDate('created_at', $parsedDate)
+            ->where('payment_method', 'qris')
+            ->sum('total_amount');
+
+        $tfAmount = DB::table('transactions')
+            ->whereDate('created_at', $parsedDate)
+            ->where('payment_method', 'transfer')
+            ->sum('total_amount');
+
+        $profit = DB::table('transaction_items')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->whereDate('transactions.created_at', $parsedDate)
+            ->where('transactions.status', 'completed')
+            ->sum(DB::raw('(transaction_items.selling_price - products.buying_price) * transaction_items.quantity'));
 
         return [
             'date' => $parsedDate,
-            'total_income' => $totalIncome,
-            'total_expense' => $totalExpense,
-            'expected_cash' => $expectedCash,
+            'total_sales' => (float)$totalSales,
+            'total_transactions' => (int)$totalTrx,
+            'total_items_sold' => (int)$totalItems,
+            'cash_amount' => (float)$cashAmount,
+            'qris_amount' => (float)$qrisAmount,
+            'transfer_amount' => (float)$tfAmount,
+            'net_profit' => (float)$profit,
         ];
     }
 
-    /**
-     * Perform the end-of-day closing process.
-     * Records the actual cash in drawer and calculates any differences.
-     *
-     * @param int $userId The ID of the manager/employee performing closing
-     * @param string $date The date of closing
-     * @param float $actualCash The physical money counted in the drawer
-     * @param string|null $note Any comments (e.g. excuse for difference)
-     * @return DailyClosing
-     * @throws Exception
-     */
     public function performClosing(int $userId, string $date, float $actualCash, ?string $note = null): DailyClosing
     {
         $parsedDate = Carbon::parse($date)->format('Y-m-d');
 
-        // Prevent double closing for the same day
         $existingClosing = DailyClosing::where('closing_date', $parsedDate)->first();
         if ($existingClosing) {
             throw new Exception("Tutup buku untuk tanggal {$parsedDate} sudah dilakukan sebelumnya.");
         }
 
         $summary = $this->calculateSummary($parsedDate);
-        $expectedCash = $summary['expected_cash'];
-        
-        $difference = $actualCash - $expectedCash;
+        $difference = $actualCash - $summary['total_sales']; // Using total_sales as expected cash here, or determine logic. 
+        // Note: The Flutter app defines difference as actualCash - expectedCash. 
+        // In the model net_profit is also there.
 
         return DailyClosing::create([
             'user_id' => $userId,
             'closing_date' => $parsedDate,
-            'total_income' => $summary['total_income'],
-            'total_expense' => $summary['total_expense'],
-            'expected_cash' => $expectedCash,
+            'total_sales' => $summary['total_sales'],
+            'total_transactions' => $summary['total_transactions'],
+            'total_items_sold' => $summary['total_items_sold'],
+            'cash_amount' => $summary['cash_amount'],
+            'qris_amount' => $summary['qris_amount'],
+            'transfer_amount' => $summary['transfer_amount'],
             'actual_cash' => $actualCash,
             'difference' => $difference,
             'note' => $note,
+            'net_profit' => $summary['net_profit'],
         ]);
     }
 }

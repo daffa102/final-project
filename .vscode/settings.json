@@ -1,0 +1,23 @@
+{
+    "css.lint.unknownAtRules": "ignore",
+    "java.jdt.ls.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.19.10-hotspot",
+    "java.import.gradle.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.19.10-hotspot",
+    "gradle.javaHome": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.19.10-hotspot",
+    "kotlin.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.19.10-hotspot",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.19.10-hotspot",
+            "default": true
+        },
+        {
+            "name": "JavaSE-11",
+            "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.19.10-hotspot"
+        },
+        {
+            "name": "JavaSE-1.8",
+            "path": "C:\\Program Files\\Java\\jre1.8.0_491"
+        }
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

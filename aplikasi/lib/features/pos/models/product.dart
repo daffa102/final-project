@@ -1,44 +1,24 @@
-class Product {
-  final int id;
-  final int categoryId;
-  final String name;
-  final double buyingPrice;
-  final double sellingPrice;
-  final int stock;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  Product({
-    required this.id,
-    required this.categoryId,
-    required this.name,
-    required this.buyingPrice,
-    required this.sellingPrice,
-    required this.stock,
-  });
+part 'product.freezed.dart';
+part 'product.g.dart';
 
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-        id: json['id'],
-        categoryId: int.parse(json['category_id'].toString()),
-        name: json['name'],
-        buyingPrice: double.parse(json['buying_price'].toString()),
-        sellingPrice: double.parse(json['selling_price'].toString()),
-        stock: int.parse(json['stock'].toString()),
-      );
+int _parseInt(dynamic value) => value is int ? value : int.tryParse(value.toString()) ?? 0;
+double _parseDouble(dynamic value) => value is double ? value : double.tryParse(value.toString()) ?? 0.0;
 
-  factory Product.fromMap(Map<String, dynamic> map) => Product(
-        id: map['id'],
-        categoryId: map['category_id'],
-        name: map['name'],
-        buyingPrice: map['buying_price'],
-        sellingPrice: map['selling_price'],
-        stock: map['stock'],
-      );
+// ignore_for_file: invalid_annotation_target
+@freezed
+class Product with _$Product {
+  const factory Product({
+    @JsonKey(fromJson: _parseInt) required int id,
+    @JsonKey(name: 'category_id', fromJson: _parseInt) required int categoryId,
+    required String name,
+    @JsonKey(name: 'buying_price', fromJson: _parseDouble) required double buyingPrice,
+    @JsonKey(name: 'selling_price', fromJson: _parseDouble) required double sellingPrice,
+    @JsonKey(fromJson: _parseInt) required int stock,
+    @Default(5) @JsonKey(name: 'min_stock', fromJson: _parseInt) int minStock,
+    @JsonKey(name: 'image_url') String? imagePath,
+  }) = _Product;
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'category_id': categoryId,
-        'name': name,
-        'buying_price': buyingPrice,
-        'selling_price': sellingPrice,
-        'stock': stock,
-      };
+  factory Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);
 }

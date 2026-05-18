@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 
 class TransactionController extends Controller
@@ -29,7 +30,7 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function show($id, Request $request)
+    public function show(int $id, Request $request)
     {
         $transaction = Transaction::where('user_id', $request->user()->id)
             ->with('items')
@@ -73,5 +74,48 @@ class TransactionController extends Controller
                 'message' => $e->getMessage()
             ], 422);
         }
+    }
+
+    public function initiatePayment(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'payment_method' => 'required|string',
+        ]);
+
+        try {
+            $paymentData = $this->transactionService->initiateMidtransPayment(
+                $request->user()->id,
+                $request->items,
+                $request->payment_method
+            );
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $paymentData
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 422);
+        }
+    }
+
+    public function print(int $id, Request $request)
+    {
+        $transaction = Transaction::where('user_id', $request->user()->id)
+            ->with(['items.product', 'user'])
+            ->findOrFail($id);
+            
+        $store = \App\Models\StoreProfile::where('user_id', $request->user()->id)->first();
+
+        $pdf = Pdf::loadView('pdf.receipt', compact('transaction', 'store'));
+        
+        // Atur ukuran struk thermal (58mm atau 80mm)
+        // 58mm ~ 164pt, 80mm ~ 226pt
+        $pdf->setPaper([0, 0, 226, 500], 'portrait'); 
+
+        return $pdf->stream('struk-'.$transaction->invoice_number.'.pdf');
     }
 }

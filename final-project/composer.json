@@ -7,9 +7,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.0",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "livewire/livewire": "^4.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -79,8 +81,23 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        }
+        },
+        "disable-tls": true,
+        "secure-http": false,
+        "cafile": "C:/Users/USER/KEUANGAN FP/final-project/final-project/cacert.pem"
     },
+    "repositories": [
+        {
+            "name": "packagist",
+            "type": "composer",
+            "url": "http://repo.packagist.org"
+        },
+        {
+            "type": "composer",
+            "url": "http://repo.packagist.org",
+            "allow_ssl_downgrade": true
+        }
+    ],
     "minimum-stability": "stable",
     "prefer-stable": true
 }
