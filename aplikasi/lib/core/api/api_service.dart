@@ -12,10 +12,10 @@ class ApiService {
     if (kIsWeb) {
       // Use Uri.base to get current page URL safely without dart:html
       final String host = Uri.base.host;
-      return 'http://$host:8080/api';
+      return 'http://$host:8000/api';
     }
     // Changed from localhost to the computer's local IP so the physical phone can connect
-    return 'http://192.168.1.3:8080/api';
+    return 'http://10.120.130.102:8000/api';
   }
 
   final Dio _dio = Dio(

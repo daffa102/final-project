@@ -32,6 +32,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function storeProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(StoreProfile::class);
+    }
+
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);

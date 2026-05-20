@@ -20,18 +20,18 @@ class _LoginScreenState extends State<LoginScreen>
   bool _showForm = false; // False = Landing Mode, True = Form Mode
 
   // ── Auth fields ─────────────────────────────────────────────────────────
-  final _emailController    = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   // ── Animations ──────────────────────────────────────────────────────────
   late AnimationController _staggerCtrl;
-  late Animation<double>  _logoFade;
-  late Animation<Offset>  _logoSlide;
-  late Animation<double>  _titleFade;
-  late Animation<Offset>  _titleSlide;
-  late Animation<double>  _btnFade;
-  late Animation<Offset>  _btnSlide;
+  late Animation<double> _logoFade;
+  late Animation<Offset> _logoSlide;
+  late Animation<double> _titleFade;
+  late Animation<Offset> _titleSlide;
+  late Animation<double> _btnFade;
+  late Animation<Offset> _btnSlide;
 
   @override
   void initState() {
@@ -49,20 +49,44 @@ class _LoginScreenState extends State<LoginScreen>
     );
     const slide = Offset(0.0, 0.15);
 
-    _logoFade  = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _staggerCtrl, curve: const Interval(0.0, 0.4, curve: Curves.easeOut)));
-    _logoSlide = Tween<Offset>(begin: slide, end: Offset.zero).animate(CurvedAnimation(
-      parent: _staggerCtrl, curve: const Interval(0.0, 0.4, curve: Curves.easeOut)));
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _staggerCtrl,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
+    _logoSlide = Tween<Offset>(begin: slide, end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _staggerCtrl,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
 
-    _titleFade = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _staggerCtrl, curve: const Interval(0.2, 0.6, curve: Curves.easeOut)));
-    _titleSlide = Tween<Offset>(begin: slide, end: Offset.zero).animate(CurvedAnimation(
-      parent: _staggerCtrl, curve: const Interval(0.2, 0.6, curve: Curves.easeOut)));
+    _titleFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _staggerCtrl,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    _titleSlide = Tween<Offset>(begin: slide, end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _staggerCtrl,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
+      ),
+    );
 
-    _btnFade = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _staggerCtrl, curve: const Interval(0.6, 1.0, curve: Curves.easeOut)));
-    _btnSlide = Tween<Offset>(begin: slide, end: Offset.zero).animate(CurvedAnimation(
-      parent: _staggerCtrl, curve: const Interval(0.6, 1.0, curve: Curves.easeOut)));
+    _btnFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _staggerCtrl,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+      ),
+    );
+    _btnSlide = Tween<Offset>(begin: slide, end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _staggerCtrl,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+      ),
+    );
   }
 
   @override
@@ -75,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   void _handleLogin() async {
     final provider = Provider.of<AuthProvider>(context, listen: false);
-    final email    = _emailController.text.trim();
+    final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
@@ -87,7 +111,10 @@ class _LoginScreenState extends State<LoginScreen>
 
     final success = await provider.login(email, password);
     if (success && mounted) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainWrapper()));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainWrapper()),
+      );
     } else if (mounted && provider.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(provider.error!), backgroundColor: Colors.red),
@@ -104,17 +131,14 @@ class _LoginScreenState extends State<LoginScreen>
       body: Stack(
         children: [
           // ── Background Layer (Pattern) ──────────────────────────────────
-          Positioned.fill(
-            child: SvgPicture.asset(
-              'lib/assets/Content wrapper.svg',
-              fit: BoxFit.cover,
-            ),
-          ),
+          // (Intentionally excluded to improve performance and app size)
 
           SafeArea(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 500),
-              child: _showForm ? _buildLoginForm(isLoading) : _buildLandingMode(),
+              child: _showForm
+                  ? _buildLoginForm(isLoading)
+                  : _buildLandingMode(),
             ),
           ),
         ],
@@ -131,9 +155,17 @@ class _LoginScreenState extends State<LoginScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _Stagger(opacity: _logoFade, slide: _logoSlide, child: _buildLogoSmall()),
+          _Stagger(
+            opacity: _logoFade,
+            slide: _logoSlide,
+            child: _buildLogoSmall(),
+          ),
           SizedBox(height: 32.h),
-          _Stagger(opacity: _titleFade, slide: _titleSlide, child: _buildWelcomeText()),
+          _Stagger(
+            opacity: _titleFade,
+            slide: _titleSlide,
+            child: _buildWelcomeText(),
+          ),
           SizedBox(height: 80.h),
           _Stagger(
             opacity: _btnFade,
@@ -145,7 +177,9 @@ class _LoginScreenState extends State<LoginScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFBEF364),
                     minimumSize: Size(double.infinity, 56.h),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
                   ),
                   child: Text(
                     'LOG IN',
@@ -158,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 ),
                 SizedBox(height: 24.h),
-                
+
                 // Subscription Option for New Users
                 Text(
                   'Belum punya akun?',
@@ -170,11 +204,21 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 SizedBox(height: 8.h),
                 OutlinedButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen())),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SubscriptionScreen(),
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFBEF364), width: 1.5),
+                    side: const BorderSide(
+                      color: Color(0xFFBEF364),
+                      width: 1.5,
+                    ),
                     minimumSize: Size(double.infinity, 50.h),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
                   ),
                   child: Text(
                     'SILAHKAN SUBSCRIPTION - 50% / BLN',
@@ -246,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 32.h),
-                    
+
                     // Email Field
                     Text(
                       'Email',
@@ -261,7 +305,9 @@ class _LoginScreenState extends State<LoginScreen>
                     TextFormField(
                       controller: _emailController,
                       style: const TextStyle(color: Colors.black87),
-                      decoration: _buildLightInputDecoration('example@example.com'),
+                      decoration: _buildLightInputDecoration(
+                        'example@example.com',
+                      ),
                     ),
 
                     SizedBox(height: 24.h),
@@ -281,22 +327,32 @@ class _LoginScreenState extends State<LoginScreen>
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       style: const TextStyle(color: Colors.black87),
-                      decoration: _buildLightInputDecoration('Enter password').copyWith(
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            color: Colors.black26,
-                            size: 22.r,
+                      decoration: _buildLightInputDecoration('Enter password')
+                          .copyWith(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: Colors.black26,
+                                size: 22.r,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                            ),
                           ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
                     ),
 
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordScreen(),
+                          ),
+                        ),
                         child: Text(
                           'Lupa Password?',
                           style: TextStyle(
@@ -317,11 +373,20 @@ class _LoginScreenState extends State<LoginScreen>
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1E293B), // Dark Slate
                         minimumSize: Size(double.infinity, 58.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
                         elevation: 0,
                       ),
                       child: isLoading
-                          ? SizedBox(height: 24.r, width: 24.r, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          ? SizedBox(
+                              height: 24.r,
+                              width: 24.r,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
                           : Text(
                               'Log in',
                               style: TextStyle(
@@ -334,7 +399,6 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
 
                     SizedBox(height: 100.h), // Spacer
-
                     // Footer (Terms & Privacy)
                     Center(
                       child: Column(
@@ -356,9 +420,21 @@ class _LoginScreenState extends State<LoginScreen>
                                 fontFamily: 'Poppins',
                               ),
                               children: const [
-                                TextSpan(text: 'Terms', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87)),
+                                TextSpan(
+                                  text: 'Terms',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                                 TextSpan(text: ' and '),
-                                TextSpan(text: 'Privacy Policy', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87)),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                                 TextSpan(text: '.'),
                               ],
                             ),
@@ -445,13 +521,20 @@ class _LoginScreenState extends State<LoginScreen>
 }
 
 class _Stagger extends StatelessWidget {
-  const _Stagger({required this.opacity, required this.slide, required this.child});
+  const _Stagger({
+    required this.opacity,
+    required this.slide,
+    required this.child,
+  });
   final Animation<double> opacity;
   final Animation<Offset> slide;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(opacity: opacity, child: SlideTransition(position: slide, child: child));
+    return FadeTransition(
+      opacity: opacity,
+      child: SlideTransition(position: slide, child: child),
+    );
   }
 }
