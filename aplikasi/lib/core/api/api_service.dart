@@ -15,7 +15,7 @@ class ApiService {
       return 'http://$host:8080/api';
     }
     // Changed from localhost to the computer's local IP so the physical phone can connect
-    return 'http://192.168.1.3:8080/api';
+    return 'http://172.20.3.242:8080/api';
   }
 
   final Dio _dio = Dio(
@@ -47,7 +47,7 @@ class ApiService {
   String resolveImageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
     String cleanPath = path;
-    
+
     // 1. If it's a full URL, extract the path part
     if (path.startsWith('http')) {
       final uri = Uri.tryParse(path);
@@ -61,21 +61,21 @@ class ApiService {
         }
       }
     }
-    
+
     // 2. Normalize: remove any leading storage/ or /storage/ to start fresh
     if (cleanPath.startsWith('/storage/')) {
       cleanPath = cleanPath.replaceFirst('/storage/', '');
     } else if (cleanPath.startsWith('storage/')) {
       cleanPath = cleanPath.replaceFirst('storage/', '');
     }
-    
+
     // 3. Ensure leading slash and /storage/ prefix
     if (cleanPath.startsWith('/')) {
       cleanPath = '/storage$cleanPath';
     } else {
       cleanPath = '/storage/$cleanPath';
     }
-        
+
     return Uri.encodeFull('$baseUrl$cleanPath');
   }
 }

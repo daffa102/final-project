@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -69,7 +71,7 @@ class _ReceiptViewerScreenState extends State<ReceiptViewerScreen> {
     }
   }
 
-  void _shareReceipt() {
+  void _shareReceipt() async {
     if (_fullTrx == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sedang memuat data transaksi...'), behavior: SnackBarBehavior.floating)
@@ -105,7 +107,34 @@ KEMBALI: ${currencyFormat.format(double.tryParse(_fullTrx!['change_amount'].toSt
 ${_store?['receipt_footer'] ?? 'Terima kasih telah berbelanja!'}
     """;
 
-    Share.share(shareText, subject: 'Struk Transaksi ${_fullTrx!['invoice_number']}');
+    if (kIsWeb) {
+      await Clipboard.setData(ClipboardData(text: shareText));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Struk berhasil disalin ke clipboard!'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      try {
+        await Share.share(shareText, subject: 'Struk Transaksi ${_fullTrx!['invoice_number']}');
+      } catch (_) {}
+    } else {
+      try {
+        await Share.share(shareText, subject: 'Struk Transaksi ${_fullTrx!['invoice_number']}');
+      } catch (e) {
+        await Clipboard.setData(ClipboardData(text: shareText));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal membagikan. Struk disalin ke clipboard!'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override

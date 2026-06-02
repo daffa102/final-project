@@ -69,6 +69,10 @@ class TransactionController extends Controller
             ], 201);
 
         } catch (Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Checkout Error (store): ' . $e->getMessage(), [
+                'exception' => $e,
+                'request' => $request->all()
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
@@ -95,6 +99,10 @@ class TransactionController extends Controller
                 'data' => $paymentData
             ]);
         } catch (Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Checkout Error (initiatePayment): ' . $e->getMessage(), [
+                'exception' => $e,
+                'request' => $request->all()
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()

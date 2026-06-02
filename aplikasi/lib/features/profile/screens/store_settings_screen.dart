@@ -23,6 +23,8 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
   
   String? _imagePath;
   XFile? _imageFile;
+  String? _qrisPath;
+  XFile? _qrisFile;
   bool _isLoading = false;
 
   @override
@@ -44,6 +46,7 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
         _phoneController.text = data['phone_number'] ?? '';
         _footerController.text = data['receipt_footer'] ?? '';
         _imagePath = data['logo_url'];
+        _qrisPath = data['qris_url'];
       }
     } catch (e) {
       if (!mounted) return;
@@ -59,6 +62,16 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
       setState(() {
         _imageFile = image;
         _imagePath = image.path;
+      });
+    }
+  }
+
+  Future<void> _pickQrisImage() async {
+    final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _qrisFile = image;
+        _qrisPath = image.path;
       });
     }
   }
@@ -80,6 +93,11 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
       if (_imageFile != null) {
         data['logo_bytes'] = await _imageFile!.readAsBytes();
         data['logo_name'] = _imageFile!.name;
+      }
+
+      if (_qrisFile != null) {
+        data['qris_bytes'] = await _qrisFile!.readAsBytes();
+        data['qris_name'] = _qrisFile!.name;
       }
 
       final response = await api.client.post('/store', data: data);
@@ -225,6 +243,36 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
                             _buildTextField(_footerController, 'Catatan Kaki Struk', Icons.edit_note_outlined, isDark, hint: 'Terima Kasih, Selamat Datang Kembali'),
                             
                             SizedBox(height: 32.h),
+                            _buildSectionHeader('QRIS Toko'),
+                            SizedBox(height: 16.h),
+                            GestureDetector(
+                              onTap: _pickQrisImage,
+                              child: Container(
+                                height: 160.h,
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E2938) : Colors.black.withValues(alpha: 0.02),
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05)),
+                                ),
+                                child: _qrisPath != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(16.r),
+                                        child: Center(
+                                          child: _buildQrisPreview(_qrisPath!, isDark),
+                                        ),
+                                      )
+                                    : Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.qr_code_scanner, color: const Color(0xFFBEF364), size: 40.r),
+                                          SizedBox(height: 8.h),
+                                          Text('Upload QRIS Toko Anda', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                        ],
+                                      ),
+                              ),
+                            ),
+
+                            SizedBox(height: 32.h),
                             _buildSectionHeader('Sistem & Sinkronisasi'),
                             SizedBox(height: 16.h),
                             _buildDropdownField(isDark),
@@ -272,6 +320,21 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
     return Image.network(
       url, 
       fit: BoxFit.cover, 
+      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: isDark ? Colors.white10 : Colors.black12)
+    );
+  }
+
+  Widget _buildQrisPreview(String path, bool isDark) {
+    if (kIsWeb && path.startsWith('blob:')) {
+      return Image.network(path, fit: BoxFit.contain);
+    }
+
+    final pos = context.read<PosProvider>();
+    final url = pos.apiService.resolveImageUrl(path);
+    
+    return Image.network(
+      url, 
+      fit: BoxFit.contain, 
       errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: isDark ? Colors.white10 : Colors.black12)
     );
   }

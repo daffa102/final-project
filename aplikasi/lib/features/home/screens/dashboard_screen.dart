@@ -6,10 +6,8 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../pos/providers/pos_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/navigation/navigation_provider.dart';
-import '../../../core/widgets/pdf_viewer_screen.dart';
-import '../../../core/api/api_service.dart';
-import 'package:dio/dio.dart';
-import 'dart:typed_data';
+import '../../closing/screens/daily_closing_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -89,61 +87,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       children: [
                         GestureDetector(
-                          onTap: () async {
-                            final api = ApiService();
-                            try {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (c) => const Center(child: CircularProgressIndicator(color: Color(0xFFBEF364))),
-                              );
-                              
-                              final response = await api.client.get(
-                                '/finance/export',
-                                options: Options(responseType: ResponseType.bytes),
-                              );
-                              
-                              if (!context.mounted) return;
-                              Navigator.pop(context); // Close loading
-                              
-                              final Uint8List pdfData = Uint8List.fromList(response.data);
-                              
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => PdfViewerScreen(
-                                  pdfData: pdfData,
-                                  title: 'Laporan Laba Rugi',
-                                ),
-                              ));
-                            } catch (e) {
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal export PDF: $e')));
-                              }
-                            }
-                          },
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyClosingScreen())),
                           child: Container(
-                            width: 40.w,
-                            height: 40.w,
-                            margin: EdgeInsets.only(right: 8.w),
+                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E2938) : Colors.white,
-                              borderRadius: BorderRadius.circular(8.r),
-                              boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
+                              color: isDark ? const Color(0xFF1E2938) : const Color(0xFFF4FCE3),
+                              borderRadius: BorderRadius.circular(20.r),
+                              border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
                             ),
-                            child: Icon(Icons.picture_as_pdf_outlined, color: theme.colorScheme.primary),
+                            child: Text(
+                              'Tutup kasir',
+                              style: TextStyle(
+                                color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
+                        SizedBox(width: 8.w),
                         GestureDetector(
-                          onTap: () => context.read<NavigationProvider>().setIndex(3),
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
                           child: Container(
-                            width: 40.w,
-                            height: 40.w,
+                            width: 36.w,
+                            height: 36.w,
                             decoration: BoxDecoration(
                               color: isDark ? const Color(0xFF1E2938) : Colors.white,
-                              borderRadius: BorderRadius.circular(8.r),
-                              boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
+                              borderRadius: BorderRadius.circular(10.r),
+                              border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
                             ),
-                            child: Icon(Icons.notifications_none, color: theme.colorScheme.primary),
+                            child: Icon(Icons.person_outline, color: isDark ? Colors.white : Colors.black87, size: 20.r),
                           ),
                         ),
                       ],
@@ -157,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Container(
                   padding: EdgeInsets.all(24.w),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFBEF364),
+                    color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
                     borderRadius: BorderRadius.circular(24.r),
                   ),
                   child: Column(
@@ -165,19 +138,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         'Total Pendapatan ($_selectedPeriod)',
-                        style: TextStyle(color: const Color(0xFF1D1B20), fontSize: 14.sp, fontFamily: 'Roboto'),
+                        style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70, fontSize: 14.sp, fontFamily: 'Roboto'),
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         currencyFormat.format(totalIncome),
-                        style: TextStyle(color: const Color(0xFF1D1B20), fontSize: 28.sp, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+                        style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 28.sp, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
                       ),
                       SizedBox(height: 20.h),
                       Row(
                         children: [
-                          _buildMiniStat('Profit', currencyFormat.format(totalProfit)),
+                          _buildMiniStat('Profit', currencyFormat.format(totalProfit), isDark),
                           SizedBox(width: 24.w),
-                          _buildMiniStat('Transaksi', filteredTrx.length.toString()),
+                          _buildMiniStat('Transaksi', filteredTrx.length.toString(), isDark),
                         ],
                       ),
                     ],
@@ -316,7 +289,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 16.sp, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<NavigationProvider>().setIndex(0),
+                      onPressed: () => context.read<NavigationProvider>().setIndex(3),
                       child: Text('Lihat Semua', style: TextStyle(color: const Color(0xFFBEF364), fontSize: 12.sp)),
                     ),
                   ],
@@ -336,31 +309,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMiniStat(String label, String value) {
+  Widget _buildMiniStat(String label, String value, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: const Color(0xFF1D1B20).withValues(alpha: 0.6), fontSize: 12.sp)),
-        Text(value, style: TextStyle(color: const Color(0xFF1D1B20), fontSize: 16.sp, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70, fontSize: 12.sp)),
+        Text(value, style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold)),
       ],
     );
   }
 
   Widget _buildPeriodTab(String period, bool isDark) {
     bool isSelected = _selectedPeriod == period;
+    final activeBgColor = isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C);
+    final activeTextColor = isDark ? const Color(0xFF111727) : Colors.white;
+    final inactiveBgColor = isDark ? const Color(0xFF1E2938) : const Color(0xFFF3F4F6);
+    final inactiveTextColor = isDark ? Colors.white54 : Colors.black54;
+
     return GestureDetector(
       onTap: () => setState(() => _selectedPeriod = period),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFBEF364) : (isDark ? const Color(0xFF1E2938) : Colors.white),
+          color: isSelected ? activeBgColor : inactiveBgColor,
           borderRadius: BorderRadius.circular(99.r),
           boxShadow: isSelected || isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
         ),
         child: Text(
           period,
           style: TextStyle(
-            color: isSelected ? const Color(0xFF1D1B20) : (isDark ? Colors.white70 : Colors.black54),
+            color: isSelected ? activeTextColor : inactiveTextColor,
             fontSize: 14.sp,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -370,12 +348,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   List<PieChartSectionData> _generatePieSections(List<Map<String, dynamic>> transactions, bool isDark) {
-    final List<Color> colors = [const Color(0xFFBEF364), Colors.blueAccent, Colors.orangeAccent, Colors.purpleAccent];
     Map<String, double> data = {};
     double total = 0;
     
     if (transactions.isEmpty) {
-      return []; // Return empty sections instead of dummy data
+      return [];
     } else {
       for (var trx in transactions) {
         final method = trx['payment_method']?.toString() ?? 'Lainnya';
@@ -385,16 +362,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     }
 
-    int i = 0;
     return data.entries.map((e) {
-      final color = colors[i % colors.length];
-      i++;
+      final color = _getMethodColor(e.key);
       final percentage = total > 0 ? (e.value / total * 100).toStringAsFixed(1) : '0';
       return PieChartSectionData(
         color: color,
         value: e.value,
         title: '$percentage%',
-        radius: 80.r, // Thicker sections
+        radius: 80.r,
         showTitle: true,
         titleStyle: TextStyle(
           fontSize: 12.sp, 
@@ -529,12 +504,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }).toList();
   }
 
-  Color _getLegendColor(String method) {
+  Color _getMethodColor(String method) {
     switch (method.toLowerCase()) {
-      case 'tunai': return const Color(0xFFBEF364);
-      case 'qris': return Colors.blueAccent;
-      case 'transfer': return Colors.orangeAccent;
-      default: return Colors.purpleAccent;
+      case 'cash':     return const Color(0xFFBEF364);  // lime green - Cash
+      case 'qris':     return const Color(0xFF3B82F6);  // blue - QRIS
+      case 'transfer': return const Color(0xFFF97316);  // orange - Bank Transfer
+      case 'wallet':   return const Color(0xFFA855F7);  // purple - E-Wallet
+      default:         return const Color(0xFF94A3B8);  // slate - Lainnya
     }
   }
+
+  Color _getLegendColor(String method) => _getMethodColor(method);
 }

@@ -56,6 +56,16 @@ class DailyClosingService
             ->where('transactions.status', 'completed')
             ->sum(DB::raw('(transaction_items.selling_price - products.buying_price) * transaction_items.quantity'));
 
+        $bestSelling = DB::table('transaction_items')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->whereDate('transactions.created_at', $parsedDate)
+            ->where('transactions.status', 'completed')
+            ->select('transaction_items.product_name', DB::raw('SUM(transaction_items.quantity) as total_qty'))
+            ->groupBy('transaction_items.product_name')
+            ->orderBy('total_qty', 'desc')
+            ->limit(3)
+            ->get();
+
         return [
             'date' => $parsedDate,
             'total_sales' => (float)$totalSales,
@@ -65,6 +75,7 @@ class DailyClosingService
             'qris_amount' => (float)$qrisAmount,
             'transfer_amount' => (float)$tfAmount,
             'net_profit' => (float)$profit,
+            'best_selling' => $bestSelling,
         ];
     }
 

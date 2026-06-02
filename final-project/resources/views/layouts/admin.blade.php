@@ -7,26 +7,26 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --bg-base:     #0d0d0d;
-            --bg-sidebar:  #111111;
-            --bg-card:     #181818;
-            --bg-card-alt: #1e1e1e;
-            --bg-topbar:   rgba(13,13,13,0.92);
+            --bg-base:     #0D1117;
+            --bg-sidebar:  #111727;
+            --bg-card:     #161D2E;
+            --bg-card-alt: #1E2938;
+            --bg-topbar:   rgba(13,17,23,0.92);
             --border:      rgba(255,255,255,0.07);
             --border-soft: rgba(255,255,255,0.04);
-            --accent:      #6366f1;
-            --accent-2:    #8b5cf6;
+            --accent:      #BEF364;
+            --accent-2:    #8FCC2A;
             --teal:        #14b8a6;
-            --text-1:      #f3f4f6;
-            --text-2:      #9ca3af;
-            --text-3:      #4b5563;
+            --text-1:      #F1F5F9;
+            --text-2:      #94A3B8;
+            --text-3:      #4B5563;
             --sidebar-w:   256px;
             --ease:        cubic-bezier(.4,0,.2,1);
         }
@@ -64,13 +64,7 @@
             overflow: hidden;
         }
 
-        /* subtle top glow */
-        #sidebar::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 180px;
-            background: radial-gradient(ellipse 120% 140% at 30% 0%, rgba(99,102,241,.18) 0%, transparent 60%);
-            pointer-events: none;
-        }
+        /* Removed sidebar glow */
 
         .sb-inner { padding: 24px 16px; display: flex; flex-direction: column; height: 100%; position: relative; }
 
@@ -80,17 +74,8 @@
             text-decoration: none; padding: 4px 8px; margin-bottom: 32px;
         }
 
-        .sb-logo-mark {
-            width: 34px; height: 34px; border-radius: 10px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 18px rgba(99,102,241,.45);
-        }
-
-        .sb-logo-mark i { font-size: 1rem; color: #fff; }
-
-        .sb-logo-text { font-size: 1.15rem; font-weight: 800; color: var(--text-1); letter-spacing: -.03em; }
-        .sb-logo-text em { font-style: normal; color: var(--accent); }
+        .sb-logo-text { font-family: 'Poppins', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--accent); letter-spacing: -.03em; }
+        .sb-logo-text em { font-style: normal; color: var(--text-1); }
 
         /* nav section */
         .sb-section-label {
@@ -115,8 +100,8 @@
         .sb-link:hover { background: rgba(255,255,255,.05); color: var(--text-1); }
 
         .sb-item.active .sb-link {
-            background: rgba(99,102,241,.14);
-            color: #a5b4fc;
+            background: rgba(190,243,100,.14);
+            color: var(--accent);
         }
 
         .sb-item.active .sb-link::before {
@@ -141,7 +126,7 @@
             width: 32px; height: 32px; border-radius: 8px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: .75rem; font-weight: 800; color: #fff; flex-shrink: 0;
+            font-size: .75rem; font-weight: 800; color: #111727; flex-shrink: 0;
         }
 
         .sb-user-name { font-size: .8rem; font-weight: 600; color: var(--text-1); }
@@ -204,13 +189,17 @@
         .topbar-pill {
             display: flex; align-items: center; gap: 7px;
             padding: 6px 14px; border-radius: 20px;
-            background: rgba(99,102,241,.15);
-            border: 1px solid rgba(99,102,241,.25);
-            color: #a5b4fc; font-size: .75rem; font-weight: 600;
+            background: rgba(190,243,100,.12);
+            border: 1px solid rgba(190,243,100,.25);
+            color: var(--accent); font-size: .75rem; font-weight: 600;
         }
 
-        /* page wrapper */
-        .page-wrap { padding: 32px; flex-grow: 1; }
+        /* page wrapper with slide up animation */
+        .page-wrap { padding: 32px; flex-grow: 1; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+        @keyframes slideUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to   { transform: translateY(0); opacity: 1; }
+        }
 
         /* page heading */
         .page-head { margin-bottom: 28px; }
@@ -239,20 +228,23 @@
             background: rgba(255,255,255,.06);
         }
 
-        .sc-black  { background: linear-gradient(135deg,#1c1c1c,#262626); border-color: rgba(255,255,255,.08); }
-        .sc-teal   { background: linear-gradient(135deg,#0d4d47,#0e6e7a); border-color: rgba(20,184,166,.25); }
-        .sc-indigo { background: linear-gradient(135deg,#2d2680,#3b2f8f); border-color: rgba(99,102,241,.3); }
+        .sc-black  { background: var(--bg-card); border-color: rgba(255,255,255,.05); }
+        .sc-teal   { background: var(--bg-card); border-color: rgba(255,255,255,.05); }
+        .sc-indigo { background: var(--bg-card); border-color: rgba(255,255,255,.05); }
 
-        .sc-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.45); margin-bottom: 8px; }
-        .sc-value { font-size: 2.2rem; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -.05em; }
-        .sc-foot  { font-size: .72rem; color: rgba(255,255,255,.35); margin-top: 10px; }
+        .sc-label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin-bottom: 8px; }
+        .sc-value { font-size: 2rem; font-weight: 800; color: var(--text-1); line-height: 1; letter-spacing: -.03em; }
+        .sc-foot  { font-size: .75rem; color: var(--text-3); margin-top: 10px; }
 
         .sc-icon {
-            width: 40px; height: 40px; border-radius: 11px;
-            background: rgba(255,255,255,.1);
+            width: 44px; height: 44px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; color: rgba(255,255,255,.7); flex-shrink: 0;
+            font-size: 1.25rem; flex-shrink: 0;
         }
+        
+        .sc-black .sc-icon { background: rgba(190,243,100,0.12); color: #BEF364; }
+        .sc-teal .sc-icon { background: rgba(45,212,191,0.12); color: #2dd4bf; }
+        .sc-indigo .sc-icon { background: rgba(107,114,128,0.12); color: #9ca3af; }
 
         /* ────────────────────────────────────────
            CARDS
@@ -331,7 +323,7 @@
             width: 34px; height: 34px; border-radius: 9px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: .75rem; font-weight: 800; color: #fff; flex-shrink: 0;
+            font-size: .75rem; font-weight: 800; color: #111727; flex-shrink: 0;
         }
 
         .u-name { font-weight: 600; color: var(--text-1); font-size: .85rem; }
@@ -379,7 +371,7 @@
             --bs-pagination-hover-color:      var(--text-1);
             --bs-pagination-active-bg:        var(--accent);
             --bs-pagination-active-border-color: var(--accent);
-            --bs-pagination-active-color:     #fff;
+            --bs-pagination-active-color:     #111727;
             --bs-pagination-disabled-bg:      var(--bg-card);
             --bs-pagination-disabled-color:   var(--text-3);
         }
@@ -388,8 +380,8 @@
         /* nav active indicator */
         #sidebar.sb-collapsed { transform: translateX(-100%); }
         .sb-link.is-active {
-            background: rgba(99,102,241,.14) !important;
-            color: #a5b4fc !important;
+            background: rgba(190,243,100,.14) !important;
+            color: var(--accent) !important;
         }
         .sb-link.is-active::before {
             content: '';
@@ -410,7 +402,7 @@
         }
         .del-modal-backdrop.open { opacity: 1; pointer-events: all; }
         .del-modal {
-            background: #1a1a1a;
+            background: var(--bg-card);
             border: 1px solid rgba(255,255,255,.08);
             border-radius: 20px;
             padding: 36px 32px;
@@ -482,8 +474,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('admin.dashboard') }}" class="sb-logo">
-                <div class="sb-logo-mark"><i class="bi bi-layers-half"></i></div>
-                <span class="sb-logo-text">Neo<em>Pay</em>™</span>
+                <span class="sb-logo-text">Kash.</span>
             </a>
 
             <div class="sb-section-label">Main Menu</div>

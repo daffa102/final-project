@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -103,13 +104,8 @@ class _LoginScreenState extends State<LoginScreen>
       backgroundColor: const Color(0xFF111727),
       body: Stack(
         children: [
-          // ── Background Layer (Pattern) ──────────────────────────────────
-          Positioned.fill(
-            child: SvgPicture.asset(
-              'lib/assets/Content wrapper.svg',
-              fit: BoxFit.cover,
-            ),
-          ),
+          // ── Animated Background ─────────────────────────────────────────
+          const Positioned.fill(child: _AnimatedBackground()),
 
           SafeArea(
             child: AnimatedSwitcher(
@@ -188,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 SizedBox(height: 12.h),
                 Text(
-                  '*Dapatkan akun otomatis setelah aktivasi',
+                  '*Setelah subscription aktif, silakan registrasi untuk memulai',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.4),
                     fontSize: 11.sp,
@@ -396,7 +392,7 @@ class _LoginScreenState extends State<LoginScreen>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'Welcome back 👋',
+            'Welcome back',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: const Color(0xFFF9FBFC),
@@ -454,4 +450,107 @@ class _Stagger extends StatelessWidget {
   Widget build(BuildContext context) {
     return FadeTransition(opacity: opacity, child: SlideTransition(position: slide, child: child));
   }
+}
+
+// ── Animated Background ─────────────────────────────────────────────────────
+class _AnimatedBackground extends StatefulWidget {
+  const _AnimatedBackground();
+
+  @override
+  State<_AnimatedBackground> createState() => _AnimatedBackgroundState();
+}
+
+class _AnimatedBackgroundState extends State<_AnimatedBackground>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, _) {
+        final t = _ctrl.value;
+        return CustomPaint(
+          painter: _BackgroundPainter(t),
+          child: Container(),
+        );
+      },
+    );
+  }
+}
+
+class _BackgroundPainter extends CustomPainter {
+  final double t;
+  _BackgroundPainter(this.t);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Base dark background
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = const Color(0xFF111727),
+    );
+
+    // Animated glowing orbs
+    _drawOrb(canvas, size,
+      x: 0.15 + 0.1 * math.sin(t * math.pi * 2),
+      y: 0.25 + 0.08 * math.cos(t * math.pi * 2),
+      radius: size.width * 0.45,
+      color: const Color(0xFFBEF364).withValues(alpha: 0.07 + 0.03 * math.sin(t * math.pi)),
+    );
+
+    _drawOrb(canvas, size,
+      x: 0.85 + 0.08 * math.cos(t * math.pi * 2 + 1),
+      y: 0.6 + 0.1 * math.sin(t * math.pi * 2 + 1),
+      radius: size.width * 0.38,
+      color: const Color(0xFF3B82F6).withValues(alpha: 0.05 + 0.02 * math.cos(t * math.pi)),
+    );
+
+    _drawOrb(canvas, size,
+      x: 0.5,
+      y: 0.85 + 0.05 * math.sin(t * math.pi * 2 + 2),
+      radius: size.width * 0.3,
+      color: const Color(0xFFBEF364).withValues(alpha: 0.04 + 0.02 * math.cos(t * math.pi + 1)),
+    );
+
+    // Subtle grid dots
+    final dotPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.04)
+      ..style = PaintingStyle.fill;
+
+    const spacing = 40.0;
+    for (double x = spacing / 2; x < size.width; x += spacing) {
+      for (double y = spacing / 2; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), 1.5, dotPaint);
+      }
+    }
+  }
+
+  void _drawOrb(Canvas canvas, Size size, {required double x, required double y, required double radius, required Color color}) {
+    final cx = size.width * x;
+    final cy = size.height * y;
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [color, color.withValues(alpha: 0)],
+      ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: radius));
+    canvas.drawCircle(Offset(cx, cy), radius, paint);
+  }
+
+  @override
+  bool shouldRepaint(_BackgroundPainter old) => old.t != t;
 }

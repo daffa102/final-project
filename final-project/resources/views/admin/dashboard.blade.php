@@ -5,7 +5,7 @@
 
 <div class="page-head">
     <h2>Account Monitoring</h2>
-    <p>Overview real-time aktivitas dan pertumbuhan pengguna NeoPay</p>
+    <p>Overview real-time aktivitas dan pertumbuhan pengguna Kash.</p>
 </div>
 
 {{-- Stat Cards --}}
@@ -66,7 +66,7 @@
             <div class="card-body">
                 <div class="qs-row">
                     <span class="qs-label">Active Rate</span>
-                    <span class="qs-val" style="color:#2dd4bf;">
+                    <span class="qs-val" style="color:#BEF364;">
                         {{ $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100) : 0 }}%
                     </span>
                 </div>
@@ -78,7 +78,7 @@
                 </div>
                 <div class="qs-row">
                     <span class="qs-label">Monthly Growth</span>
-                    <span class="qs-val" style="color:#a5b4fc;">
+                    <span class="qs-val" style="color:#8FCC2A;">
                         +{{ $chartData->count() > 0 ? $chartData->last()->count : 0 }} users
                     </span>
                 </div>
@@ -107,14 +107,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const labels = JSON.parse(canvas.dataset.labels || '[]');
     const counts = JSON.parse(canvas.dataset.counts || '[]');
     const grad   = ctx.createLinearGradient(0, 0, 0, 200);
-    grad.addColorStop(0, 'rgba(99,102,241,0.22)');
-    grad.addColorStop(1, 'rgba(99,102,241,0.00)');
+    grad.addColorStop(0, 'rgba(190,243,100,0.22)');
+    grad.addColorStop(1, 'rgba(190,243,100,0.00)');
     new Chart(ctx, {
         type: 'line',
         data: { labels, datasets: [{ label:'New Users', data: counts,
-            borderColor:'#6366f1', backgroundColor: grad, borderWidth:2.5,
+            borderColor:'#BEF364', backgroundColor: grad, borderWidth:2.5,
             tension:0.45, fill:true,
-            pointBackgroundColor:'#1e1e1e', pointBorderColor:'#6366f1',
+            pointBackgroundColor:'#1e1e1e', pointBorderColor:'#BEF364',
             pointBorderWidth:2.5, pointRadius:5, pointHoverRadius:7 }]
         },
         options: { responsive:true, plugins:{ legend:{ display:false },

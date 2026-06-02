@@ -13,6 +13,7 @@ class StoreProfile extends Model
         'phone_number',
         'address',
         'logo_url',
+        'qris_url',
         'receipt_footer',
         'tax_number',
         'instagram',

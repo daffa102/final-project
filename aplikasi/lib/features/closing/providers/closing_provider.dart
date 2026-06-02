@@ -19,6 +19,7 @@ class ClosingProvider with ChangeNotifier {
   double _transferAmount = 0.0;
   double _totalSales = 0.0;
   int _totalTrx = 0;
+  List<Map<String, dynamic>> _bestSelling = [];
 
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -29,6 +30,7 @@ class ClosingProvider with ChangeNotifier {
   double get transferAmount => _transferAmount;
   double get totalSales => _totalSales;
   int get totalTrx => _totalTrx;
+  List<Map<String, dynamic>> get bestSelling => _bestSelling;
 
   // 1. Hitung uang yang BERHARAP ada di laci (Expected Cash)
   Future<void> fetchExpectedCash() async {
@@ -46,6 +48,11 @@ class ClosingProvider with ChangeNotifier {
         _transferAmount = (data['transfer_amount'] ?? 0).toDouble();
         _totalSales = (data['total_sales'] ?? 0).toDouble();
         _totalTrx = (data['total_transactions'] ?? 0).toInt();
+        final List<dynamic> bs = data['best_selling'] is List ? data['best_selling'] : [];
+        _bestSelling = bs.map((item) => {
+          'product_name': item['product_name']?.toString() ?? 'Produk',
+          'total_qty': int.tryParse(item['total_qty']?.toString() ?? '0') ?? 0,
+        }).toList();
       }
     } catch (e) {
       _error = "Gagal mengambil data pendapatan: $e";

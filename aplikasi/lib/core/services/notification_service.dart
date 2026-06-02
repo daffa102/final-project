@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
@@ -9,10 +10,8 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    // Skip initialization on Web for now as it requires separate setup
-    if (identical(0, 0.0)) { // Simple way to check for web in Dart (or use kIsWeb)
-      return;
-    }
+    // Skip initialization on Web & non-mobile platforms (not supported)
+    if (kIsWeb) return;
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -31,6 +30,9 @@ class NotificationService {
     required String productName,
     required int currentStock,
   }) async {
+    // Notifikasi lokal hanya didukung di platform mobile (Android/iOS)
+    if (kIsWeb) return;
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'low_stock_channel',

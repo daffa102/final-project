@@ -141,20 +141,25 @@ class _SplashScreenState extends State<SplashScreen>
   Widget _buildCurrentBody() {
     switch (_assetPhase) {
       case 0:
-        return SvgPicture.asset(
-          'lib/assets/FIRST (3).svg',
+        return Center(
           key: const ValueKey('phase0'),
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
+          child: SvgPicture.asset(
+            'lib/assets/Vector.svg',
+            width: 84.r,
+            height: 84.r,
+          ),
         );
       case 1:
-        return SvgPicture.asset(
-          'lib/assets/FIRST (2).svg',
+        return Center(
           key: const ValueKey('phase1'),
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
+          child: Transform.scale(
+            scale: 1.5,
+            child: SvgPicture.asset(
+              'lib/assets/Vector.svg',
+              width: 84.r,
+              height: 84.r,
+            ),
+          ),
         );
       case 2:
       default:

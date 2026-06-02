@@ -6,7 +6,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/pos_provider.dart';
 import '../models/product.dart';
 import 'cart_screen.dart';
-import '../../../core/navigation/navigation_provider.dart';
+import '../../closing/screens/daily_closing_screen.dart';
+import '../../profile/screens/profile_screen.dart';
+
 
 class PosScreen extends StatefulWidget {
   const PosScreen({super.key});
@@ -16,7 +18,7 @@ class PosScreen extends StatefulWidget {
 }
 
 class _PosScreenState extends State<PosScreen> {
-  final NumberFormat currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
+  final NumberFormat currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -39,7 +41,7 @@ class _PosScreenState extends State<PosScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: isDark ? const Color(0xFF111727) : const Color(0xFFF9FBFC),
       body: SafeArea(
         child: Consumer<PosProvider>(
           builder: (context, pos, child) {
@@ -47,7 +49,7 @@ class _PosScreenState extends State<PosScreen> {
               children: [
                 // Custom Header
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -55,23 +57,47 @@ class _PosScreenState extends State<PosScreen> {
                         'Kasir',
                         style: TextStyle(
                           color: isDark ? Colors.white : Colors.black87,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold,
                           fontFamily: 'Poppins',
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => context.read<NavigationProvider>().setIndex(4),
-                        child: Container(
-                          width: 40.w,
-                          height: 40.w,
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E2938) : Colors.white,
-                            borderRadius: BorderRadius.circular(8.r),
-                            boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyClosingScreen())),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E2938) : const Color(0xFFEFFFCA),
+                                borderRadius: BorderRadius.circular(20.r),
+                                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
+                              ),
+                              child: Text(
+                                'Tutup kasir',
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Icon(Icons.person, color: theme.colorScheme.primary),
-                        ),
+                          SizedBox(width: 8.w),
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                            child: Container(
+                              width: 36.w,
+                              height: 36.w,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                                borderRadius: BorderRadius.circular(10.r),
+                                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+                              ),
+                              child: Icon(Icons.person_outline, color: isDark ? Colors.white : Colors.black87, size: 20.r),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -79,23 +105,23 @@ class _PosScreenState extends State<PosScreen> {
 
                 // Top Search Bar
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 0.h),
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(15.r),
-                      border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.1)),
+                      color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: isDark ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
                     ),
                     child: TextField(
                       controller: _searchController,
                       onChanged: (value) => pos.setSearchQuery(value),
                       style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                       decoration: InputDecoration(
-                        hintText: 'Cari Produk...',
-                        hintStyle: TextStyle(fontSize: 16.sp, color: isDark ? const Color(0xFF727272) : Colors.black38, fontFamily: 'Poppins'),
+                        hintText: 'Cari produk...',
+                        hintStyle: TextStyle(fontSize: 14.sp, color: isDark ? Colors.white54 : Colors.black38, fontFamily: 'Poppins'),
                         border: InputBorder.none,
-                        suffixIcon: Icon(Icons.search, color: isDark ? const Color(0xFF364152) : Colors.black26, size: 24.w),
+                        icon: Icon(Icons.circle_outlined, color: isDark ? Colors.white54 : Colors.black38, size: 20),
                       ),
                     ),
                   ),
@@ -104,11 +130,11 @@ class _PosScreenState extends State<PosScreen> {
                 // Categories
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                   child: Row(
                     children: [
-                      _buildCategoryChip(pos, 0, 'Semua Produk', theme, isDark),
-                      ...pos.categories.map((c) => _buildCategoryChip(pos, c.id, c.name, theme, isDark)),
+                      _buildCategoryChip(pos, 0, 'Semua', isDark),
+                      ...pos.categories.map((c) => _buildCategoryChip(pos, c.id, c.name, isDark)),
                     ],
                   ),
                 ),
@@ -116,13 +142,13 @@ class _PosScreenState extends State<PosScreen> {
                 // Product Grid
                 Expanded(
                   child: pos.isLoading && pos.products.isEmpty
-                      ? const Center(child: CircularProgressIndicator(color: Color(0xFFBEF364)))
+                      ? Center(child: CircularProgressIndicator(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)))
                       : RepaintBoundary(
                           child: GridView.builder(
-                            padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 180.h),
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 180.h),
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 3,
-                              childAspectRatio: 108 / 155,
+                              childAspectRatio: 0.72,
                               crossAxisSpacing: 12.w,
                               mainAxisSpacing: 12.h,
                             ),
@@ -144,57 +170,55 @@ class _PosScreenState extends State<PosScreen> {
         builder: (context, pos, child) {
           if (pos.cart.isEmpty) return const SizedBox.shrink();
 
+          final theme = Theme.of(context);
+          final isDark = theme.brightness == Brightness.dark;
+
           return Padding(
-            padding: EdgeInsets.only(bottom: 80.h),
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 20.w),
-              padding: EdgeInsets.all(14.r),
-              decoration: BoxDecoration(
-                color: const Color(0xFFBEF364),
-                borderRadius: BorderRadius.circular(12.r),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5))
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${pos.cart.length} Items',
-                          style: TextStyle(color: const Color(0xFF1D1B20), fontSize: 16.sp, fontWeight: FontWeight.w500, fontFamily: 'Roboto'),
-                        ),
-                        Text(
-                          currencyFormat.format(pos.cartTotal),
-                          style: TextStyle(color: const Color(0xFF1D1B20), fontSize: 14.sp, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF365314),
-                        borderRadius: BorderRadius.circular(6.r),
-                      ),
-                      child: Row(
+            padding: EdgeInsets.only(bottom: 70.h),
+            child: GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 20.w),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5))
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.shopping_cart_outlined, color: const Color(0xFFBEF364), size: 20.r),
-                          SizedBox(width: 8.w),
                           Text(
-                            'Keranjang',
-                            style: TextStyle(color: const Color(0xFFBEF364), fontSize: 14.sp, fontWeight: FontWeight.w500, fontFamily: 'Roboto'),
+                            '${pos.cart.length} item - ${currencyFormat.format(pos.cartTotal)}',
+                            style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.8) : Colors.white70, fontSize: 13.sp, fontWeight: FontWeight.w500),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            'Lihat keranjang',
+                            style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF111727) : Colors.white,
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Text(
+                        'Bayar',
+                        style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 14.sp, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -203,38 +227,37 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 
-  Widget _buildCategoryChip(PosProvider pos, int id, String title, ThemeData theme, bool isDark) {
+  Widget _buildCategoryChip(PosProvider pos, int id, String title, bool isDark) {
     final isSelected = pos.selectedCategoryId == id;
+    
+    final activeBgColor = isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C);
+    final activeTextColor = isDark ? const Color(0xFF111727) : Colors.white;
+    
+    final inactiveBgColor = isDark ? const Color(0xFF1E2938) : const Color(0xFFF3F4F6);
+    final inactiveTextColor = isDark ? Colors.white54 : Colors.black54;
+
     return GestureDetector(
       onTap: () => pos.selectCategory(id),
       child: Container(
         margin: EdgeInsets.only(right: 10.w),
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFBEF364) : (isDark ? const Color(0xFF1E2938) : Colors.white),
-          borderRadius: BorderRadius.circular(99.r),
-          border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.1)),
-          boxShadow: isSelected || isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
+          color: isSelected ? activeBgColor : inactiveBgColor,
+          borderRadius: BorderRadius.circular(20.r),
         ),
-        child: Row(
-          children: [
-            Icon(Icons.circle, size: 8.w, color: isSelected ? const Color(0xFF111727) : (isDark ? const Color(0xFFF9FBFC) : Colors.black38)),
-            SizedBox(width: 8.w),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? const Color(0xFF111727) : (isDark ? const Color(0xFFF9FBFC) : Colors.black87),
-                fontSize: 16.sp,
-                fontFamily: 'Inter',
-              ),
-            ),
-          ],
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? activeTextColor : inactiveTextColor,
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
   }
 
-  void _showQuantityDialog(BuildContext context, Product product, PosProvider pos) {
+  void _showQuantityDialog(BuildContext context, Product product, PosProvider pos, bool isDark) {
     int qty = 1;
     showModalBottomSheet(
       context: context,
@@ -243,7 +266,7 @@ class _PosScreenState extends State<PosScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E2938) : Colors.white,
+            color: isDark ? const Color(0xFF1E2938) : Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
           ),
           padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 24.h + MediaQuery.of(context).viewInsets.bottom),
@@ -251,7 +274,7 @@ class _PosScreenState extends State<PosScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(child: Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2.r)))),
+              Center(child: Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: isDark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(2.r)))),
               SizedBox(height: 24.h),
               Row(
                 children: [
@@ -259,7 +282,7 @@ class _PosScreenState extends State<PosScreen> {
                     width: 80.r,
                     height: 80.r,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF111727) : Colors.black.withValues(alpha: 0.05),
+                      color: isDark ? const Color(0xFF111727) : const Color(0xFFF3F4F6),
                       borderRadius: BorderRadius.circular(16.r),
                     ),
                     child: ClipRRect(
@@ -272,9 +295,9 @@ class _PosScreenState extends State<PosScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(product.name, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
+                        Text(product.name, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                         SizedBox(height: 4.h),
-                        Text(currencyFormat.format(product.sellingPrice), style: TextStyle(fontSize: 16.sp, color: const Color(0xFFBEF364), fontWeight: FontWeight.w600)),
+                        Text(currencyFormat.format(product.sellingPrice), style: TextStyle(fontSize: 16.sp, color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontWeight: FontWeight.w600)),
                         SizedBox(height: 4.h),
                         Text('Stok: ${product.stock}', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
                       ],
@@ -286,26 +309,26 @@ class _PosScreenState extends State<PosScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Jumlah Pembelian', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54)),
+                  Text('Jumlah Pembelian', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: isDark ? Colors.white70 : Colors.black87)),
                   Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                      border: Border.all(color: isDark ? Colors.white24 : Colors.black12),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: qty > 1 ? () => setState(() => qty--) : null,
-                          icon: Icon(Icons.remove, size: 18.r, color: qty > 1 ? const Color(0xFFBEF364) : Colors.grey),
+                          icon: Icon(Icons.remove, size: 18.r, color: qty > 1 ? (isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)) : Colors.grey),
                         ),
                         Container(
                           width: 40.w,
                           alignment: Alignment.center,
-                          child: Text('$qty', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
+                          child: Text('$qty', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                         ),
                         IconButton(
                           onPressed: () => setState(() => qty++),
-                          icon: Icon(Icons.add, size: 18.r, color: const Color(0xFFBEF364)),
+                          icon: Icon(Icons.add, size: 18.r, color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)),
                         ),
                       ],
                     ),
@@ -315,8 +338,8 @@ class _PosScreenState extends State<PosScreen> {
               SizedBox(height: 32.h),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBEF364),
-                  foregroundColor: const Color(0xFF111727),
+                  backgroundColor: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                  foregroundColor: isDark ? const Color(0xFF111727) : Colors.white,
                   minimumSize: Size(double.infinity, 56.h),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
                   elevation: 0,
@@ -324,13 +347,26 @@ class _PosScreenState extends State<PosScreen> {
                 onPressed: () {
                   pos.setQuantity(product, qty);
                   Navigator.pop(context);
+                  ScaffoldMessenger.of(context).clearSnackBars();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Berhasil menambah $qty ${product.name} ke keranjang'),
-                      duration: const Duration(seconds: 1),
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Color(0xFFBEF364), size: 18),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: Text(
+                              'Berhasil menambah $qty ${product.name} ke keranjang',
+                              style: TextStyle(fontSize: 13.sp),
+                            ),
+                          ),
+                        ],
+                      ),
+                      duration: const Duration(seconds: 2),
                       behavior: SnackBarBehavior.floating,
-                      backgroundColor: const Color(0xFF1E2938),
-                      margin: EdgeInsets.only(bottom: 100.h, left: 20.w, right: 20.w),
+                      backgroundColor: isDark ? const Color(0xFF1E2938) : Colors.black87,
+                      margin: EdgeInsets.only(bottom: 170.h, left: 20.w, right: 20.w),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
                   );
                 },
@@ -345,7 +381,7 @@ class _PosScreenState extends State<PosScreen> {
 
   Widget _buildProductImage(Product product, PosProvider pos) {
     final String? path = product.imagePath;
-    if (path == null || path.isEmpty) return Icon(Icons.fastfood_rounded, color: Colors.white.withValues(alpha: 0.05), size: 32.r);
+    if (path == null || path.isEmpty) return const SizedBox.shrink();
     
     if (kIsWeb && path.startsWith('blob:')) {
       return Image.network(path, fit: BoxFit.cover);
@@ -355,20 +391,20 @@ class _PosScreenState extends State<PosScreen> {
     return Image.network(
       url, 
       fit: BoxFit.cover, 
-      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: Colors.white.withValues(alpha: 0.1))
+      errorBuilder: (ctx, err, stack) => const SizedBox.shrink()
     );
   }
 
   Widget _buildProductCard(Product product, PosProvider pos, bool isDark) {
+    bool lowStock = product.stock <= 5;
     return GestureDetector(
-      onTap: () => _showQuantityDialog(context, product, pos),
+      onTap: () => _showQuantityDialog(context, product, pos, isDark),
       child: Container(
-        padding: EdgeInsets.all(10.r),
+        padding: EdgeInsets.all(8.r),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E2938) : Colors.white,
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05)),
-          boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
+          border: isDark ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,7 +414,7 @@ class _PosScreenState extends State<PosScreen> {
                 borderRadius: BorderRadius.circular(8.r),
                 child: Container(
                   width: double.infinity,
-                  color: isDark ? const Color(0xFF111727) : Colors.black.withValues(alpha: 0.05),
+                  color: isDark ? const Color(0xFF2B3648) : const Color(0xFFF3F4F6),
                   child: _buildProductImage(product, pos),
                 ),
               ),
@@ -393,7 +429,12 @@ class _PosScreenState extends State<PosScreen> {
             SizedBox(height: 2.h),
             Text(
               currencyFormat.format(product.sellingPrice),
-              style: TextStyle(color: const Color(0xFFBEF364), fontSize: 12.sp, fontWeight: FontWeight.w500, fontFamily: 'Poppins'),
+              style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 12.sp, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              'Stok: ${product.stock}',
+              style: TextStyle(color: lowStock ? Colors.orangeAccent : (isDark ? Colors.white54 : Colors.black54), fontSize: 11.sp, fontWeight: lowStock ? FontWeight.w600 : FontWeight.normal),
             ),
           ],
         ),

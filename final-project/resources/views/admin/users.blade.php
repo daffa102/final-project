@@ -6,7 +6,7 @@
 <div class="page-head d-flex align-items-center justify-content-between flex-wrap gap-3">
     <div>
         <h2>User Management</h2>
-        <p>Kelola semua akun pengguna NeoPay yang terdaftar</p>
+        <p>Kelola semua akun pengguna Kash. yang terdaftar</p>
     </div>
     <button class="btn-primary-custom" onclick="openAddUserModal()">
         <i class="bi bi-person-plus-fill me-2"></i>Tambah User Baru
@@ -17,7 +17,7 @@
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-4">
         <div class="mini-stat">
-            <div class="mini-stat-icon" style="background:rgba(99,102,241,.15);color:#a5b4fc;">
+            <div class="mini-stat-icon" style="background:rgba(190,243,100,.15);color:#BEF364;">
                 <i class="bi bi-people-fill"></i>
             </div>
             <div>
@@ -63,7 +63,7 @@
                        color:#f3f4f6;padding:7px 14px;border-radius:10px;font-size:.82rem;
                        outline:none;width:220px;">
             <button type="submit" style="padding:7px 14px;border-radius:10px;background:var(--accent);
-                    border:none;color:#fff;font-size:.82rem;font-weight:600;cursor:pointer;">
+                    border:none;color:#111727;font-size:.82rem;font-weight:700;cursor:pointer;">
                 <i class="bi bi-search"></i>
             </button>
             @if($search)
@@ -100,7 +100,7 @@
 
         @if($search)
             <div style="padding:10px 24px;font-size:.8rem;color:#6b7280;">
-                Menampilkan hasil untuk: <strong style="color:#a5b4fc;">{{ $search }}</strong>
+                Menampilkan hasil untuk: <strong style="color:#BEF364;">{{ $search }}</strong>
                 — {{ $users->total() }} user ditemukan
             </div>
         @endif
@@ -233,7 +233,7 @@
             
             <div class="d-flex gap-3">
                 <button type="button" class="btn-cancel" onclick="closeAddUserModal()">Batal</button>
-                <button type="submit" class="btn-confirm-del" style="background: var(--accent);">
+                <button type="submit" class="btn-confirm-del" style="background: var(--accent); color: #111727;">
                     Buat Akun
                 </button>
             </div>
@@ -263,7 +263,7 @@
             
             <div class="d-flex gap-3">
                 <button type="button" class="btn-cancel" onclick="closeResetPasswordModal()">Batal</button>
-                <button type="submit" class="btn-confirm-del" style="background: var(--accent);">
+                <button type="submit" class="btn-confirm-del" style="background: var(--accent); color: #111727;">
                     Simpan Password
                 </button>
             </div>
@@ -288,23 +288,22 @@
 .search-input::placeholder { color:#4b5563; }
 
 .btn-primary-custom {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    border: none; color: #fff; padding: 10px 20px; border-radius: 12px;
+    background: var(--accent);
+    border: none; color: #111727; padding: 10px 20px; border-radius: 12px;
     font-size: .875rem; font-weight: 700; cursor: pointer;
-    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
     transition: all .2s;
 }
-.btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+.btn-primary-custom:hover { background: var(--accent-2); transform: translateY(-1px); }
 
 .btn-action-custom {
-    background: rgba(99,102,241,0.1);
-    border: 1px solid rgba(99,102,241,0.2);
+    background: rgba(190,243,100,0.1);
+    border: 1px solid rgba(190,243,100,0.2);
     color: var(--accent);
     width: 32px; height: 32px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all .2s;
 }
-.btn-action-custom:hover { background: var(--accent); color: #fff; }
+.btn-action-custom:hover { background: var(--accent); color: #111727; }
 
 .form-control-custom {
     background: rgba(255,255,255,.05);

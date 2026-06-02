@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart' as dio;
+import 'package:printing/printing.dart';
 import '../../pos/providers/pos_provider.dart';
 import '../providers/finance_provider.dart';
+import '../../../core/utils/file_downloader.dart';
 
 class FinanceReportScreen extends StatefulWidget {
   const FinanceReportScreen({super.key});
@@ -34,6 +36,11 @@ class _FinanceReportScreenState extends State<FinanceReportScreen> {
       appBar: AppBar(
         title: const Text('Laporan Laba Rugi', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.table_view_rounded, color: Colors.green),
+            tooltip: 'Ekspor Excel',
+            onPressed: () => _exportExcel(context),
+          ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
             tooltip: 'Ekspor PDF',
@@ -179,19 +186,66 @@ class _FinanceReportScreenState extends State<FinanceReportScreen> {
   Future<void> _exportPdf(BuildContext context) async {
     final posProvider = context.read<PosProvider>();
     final apiService = posProvider.apiService;
-    final baseUrl = apiService.client.options.baseUrl;
-    final token = apiService.client.options.headers['Authorization']?.toString().replaceAll('Bearer ', '') ?? '';
-    
     final now = DateTime.now();
-    final url = '$baseUrl/finance/export?month=${now.month}&year=${now.year}&token=$token';
-    final uri = Uri.parse(url);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal membuka link ekspor PDF')));
-      }
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(content: Text('Menyiapkan dokumen PDF...'), behavior: SnackBarBehavior.floating),
+    );
+
+    try {
+      final response = await apiService.client.get(
+        '/finance/export',
+        queryParameters: {
+          'month': now.month,
+          'year': now.year,
+        },
+        options: dio.Options(responseType: dio.ResponseType.bytes),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (_) => response.data,
+        name: 'Laporan-Laba-Rugi-${now.year}-${now.month}.pdf',
+      );
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Gagal memuat PDF: $e'), behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  Future<void> _exportExcel(BuildContext context) async {
+    final posProvider = context.read<PosProvider>();
+    final apiService = posProvider.apiService;
+    final now = DateTime.now();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(content: Text('Menyiapkan dokumen Excel...'), behavior: SnackBarBehavior.floating),
+    );
+
+    try {
+      final response = await apiService.client.get(
+        '/finance/export/excel',
+        queryParameters: {
+          'month': now.month,
+          'year': now.year,
+        },
+        options: dio.Options(responseType: dio.ResponseType.bytes),
+      );
+
+      final bytes = response.data as List<int>;
+      final fileName = 'Laporan-Laba-Rugi-${now.year}-${now.month}.xlsx';
+      
+      await downloadFile(
+        bytes,
+        fileName,
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Gagal memuat Excel: $e'), behavior: SnackBarBehavior.floating),
+      );
     }
   }
 

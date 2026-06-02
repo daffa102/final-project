@@ -7,128 +7,337 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/pos_provider.dart';
 import '../models/product.dart';
 import 'category_management_screen.dart';
+import '../../closing/screens/daily_closing_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 
-class ProductManagementScreen extends StatelessWidget {
+class ProductManagementScreen extends StatefulWidget {
   const ProductManagementScreen({super.key});
 
   @override
+  State<ProductManagementScreen> createState() => _ProductManagementScreenState();
+}
+
+class _ProductManagementScreenState extends State<ProductManagementScreen> {
+  final NumberFormat currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final NumberFormat currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
-    
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: isDark ? const Color(0xFF111727) : const Color(0xFFF9FBFC),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Custom Header
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
+        child: Consumer<PosProvider>(
+          builder: (context, pos, child) {
+            final products = pos.products;
+            
+            // Calculate low stock products
+            final lowStockProducts = products.where((p) => p.stock <= 5).toList();
+            final lowStockCount = lowStockProducts.length;
+            final lowStockNames = lowStockProducts.take(3).map((p) => p.name).join(', ') + (lowStockProducts.length > 3 ? ', ...' : '');
+
+            return Column(
+              children: [
+                // Custom Header
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Icon(Icons.arrow_back_ios, color: isDark ? Colors.white : Colors.black87, size: 20),
-                      ),
-                      Text(
-                        'Riport',
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18.sp, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 36.w,
+                          height: 36.w,
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+                          ),
+                          child: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : Colors.black87, size: 16.r),
+                        ),
                       ),
                       SizedBox(width: 12.w),
-                      IconButton(
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryManagementScreen())),
-                        icon: Icon(Icons.category_outlined, color: const Color(0xFFBEF364), size: 20.r),
-                        tooltip: 'Manage Categories',
+                      Expanded(
+                        child: Text(
+                          'Manajemen Stok',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyClosingScreen())),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E2938) : const Color(0xFFEFFFCA),
+                                borderRadius: BorderRadius.circular(20.r),
+                                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
+                              ),
+                              child: Text(
+                                'Tutup kasir',
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                            child: Container(
+                              width: 36.w,
+                              height: 36.w,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                                borderRadius: BorderRadius.circular(10.r),
+                                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+                              ),
+                              child: Icon(Icons.person_outline, color: isDark ? Colors.white : Colors.black87, size: 20.r),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  Container(
-                    width: 40.w,
-                    height: 40.w,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E2938) : Colors.white, 
-                      borderRadius: BorderRadius.circular(8.r),
-                      boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
-                    ),
-                    child: Icon(Icons.person, color: theme.colorScheme.primary),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-            Expanded(
-              child: Consumer<PosProvider>(
-                builder: (context, pos, child) {
-                  final products = pos.products;
-                  if (products.isEmpty) {
-                    return Center(child: Text('Belum ada produk', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)));
-                  }
-                  return ListView.builder(
-                    padding: EdgeInsets.all(20.w),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return Container(
-                        margin: EdgeInsets.only(bottom: 16.h),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E2938) : Colors.white,
-                          borderRadius: BorderRadius.circular(16.r),
-                          border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05)),
-                          boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
+                // Low Stock Alert
+                if (lowStockCount > 0)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF2A1605) : const Color(0xFFFFF3CD),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: const Border(
+                          left: BorderSide(color: Color(0xFFF97316), width: 4),
                         ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.all(12.r),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(10.r),
-                            child: Container(
-                              width: 56.r, height: 56.r,
-                              color: isDark ? const Color(0xFF111727) : Colors.black.withValues(alpha: 0.02),
-                              child: _buildProductImage(product, pos, isDark),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$lowStockCount produk stok menipis',
+                            style: TextStyle(color: const Color(0xFFF97316), fontSize: 13.sp, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            lowStockNames,
+                            style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12.sp),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                SizedBox(height: 16.h),
+
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: isDark ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (value) => pos.setSearchQuery(value),
+                            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                            decoration: InputDecoration(
+                              hintText: 'Cari produk...',
+                              hintStyle: TextStyle(fontSize: 14.sp, color: isDark ? Colors.white54 : Colors.black38, fontFamily: 'Poppins'),
+                              border: InputBorder.none,
+                              icon: Icon(Icons.search, color: isDark ? Colors.white54 : Colors.black38, size: 20),
                             ),
                           ),
-                          title: Text(product.name, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600, fontSize: 15.sp)),
-                          subtitle: Text('Stock: ${product.stock} • ${currencyFormat.format(product.sellingPrice)}', 
-                              style: TextStyle(color: isDark ? Colors.white60 : Colors.black54, fontSize: 12.sp)),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, color: Color(0xFFBEF364)),
-                                onPressed: () => _showProductForm(context, pos, product: product),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                onPressed: () => _showDeleteDialog(context, pos, product, isDark),
-                              ),
-                            ],
-                          ),
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+                      ),
+                      SizedBox(width: 8.w),
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryManagementScreen())),
+                        child: Container(
+                          width: 48.w,
+                          height: 48.h,
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: isDark ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                          ),
+                          child: Icon(Icons.category_outlined, color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)),
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      GestureDetector(
+                        onTap: () => _showProductForm(context, context.read<PosProvider>(), isDark),
+                        child: Container(
+                          width: 48.w,
+                          height: 48.h,
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(Icons.add, color: isDark ? const Color(0xFF111727) : Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 16.h),
+
+                // Product List
+                Expanded(
+                  child: products.isEmpty
+                      ? Center(child: Text('Belum ada produk', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 14.sp)))
+                      : ListView.builder(
+                          padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 100.h),
+                          itemCount: products.length,
+                          itemBuilder: (context, index) {
+                            final product = products[index];
+                            final isLowStock = product.stock <= 5;
+                            String catName = 'Umum';
+                            try {
+                              catName = pos.categories.firstWhere((c) => c.id == product.categoryId).name;
+                            } catch (_) {}
+
+                            return GestureDetector(
+                              onTap: () => _showProductOptions(context, pos, product, isDark),
+                              child: Container(
+                                margin: EdgeInsets.only(bottom: 12.h),
+                                padding: EdgeInsets.all(12.r),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  border: isLowStock ? Border.all(color: const Color(0xFFF97316), width: 1.5) : (isDark ? Border.all(color: Colors.white.withValues(alpha: 0.05)) : Border.all(color: Colors.black.withValues(alpha: 0.05))),
+                                ),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                      child: Container(
+                                        width: 56.r, height: 56.r,
+                                        color: isDark ? const Color(0xFF2B3648) : const Color(0xFFF3F4F6),
+                                        child: _buildProductImage(product, pos),
+                                      ),
+                                    ),
+                                    SizedBox(width: 16.w),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold, fontSize: 15.sp, fontFamily: 'Poppins'),
+                                          ),
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            '$catName - ${currencyFormat.format(product.sellingPrice)}',
+                                            style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12.sp),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${product.stock}',
+                                          style: TextStyle(
+                                            color: isLowStock ? const Color(0xFFF97316) : (isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)),
+                                            fontSize: 20.sp,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          isLowStock ? 'menipis!' : 'pcs',
+                                          style: TextStyle(
+                                            color: isLowStock ? const Color(0xFFF97316) : (isDark ? Colors.white54 : Colors.black54),
+                                            fontSize: 12.sp,
+                                            fontWeight: isLowStock ? FontWeight.w600 : FontWeight.normal,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showProductForm(context, context.read<PosProvider>()),
-        backgroundColor: const Color(0xFFBEF364),
-        icon: const Icon(Icons.add, color: Color(0xFF111727)),
-        label: const Text('Add Product', style: TextStyle(color: Color(0xFF111727), fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  Widget _buildProductImage(Product product, PosProvider pos, bool isDark) {
+  void _showProductOptions(BuildContext context, PosProvider pos, Product product, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF1E2938) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20.r))),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 8.h),
+              Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: isDark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(2.r))),
+              SizedBox(height: 16.h),
+              ListTile(
+                leading: Icon(Icons.edit, color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)),
+                title: Text('Edit Produk', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showProductForm(context, pos, isDark, product: product);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.redAccent),
+                title: const Text('Hapus Produk', style: TextStyle(color: Colors.redAccent)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteDialog(context, pos, product, isDark);
+                },
+              ),
+              SizedBox(height: 16.h),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  Widget _buildProductImage(Product product, PosProvider pos) {
     final String? path = product.imagePath;
-    if (path == null || path.isEmpty) return Icon(Icons.fastfood, color: isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.1));
+    if (path == null || path.isEmpty) return const SizedBox.shrink();
     
     if (kIsWeb && path.startsWith('blob:')) {
       return Image.network(path, fit: BoxFit.cover);
@@ -138,7 +347,7 @@ class ProductManagementScreen extends StatelessWidget {
     return Image.network(
       url, 
       fit: BoxFit.cover, 
-      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.1))
+      errorBuilder: (ctx, err, stack) => const SizedBox.shrink()
     );
   }
 
@@ -163,7 +372,7 @@ class ProductManagementScreen extends StatelessWidget {
     );
   }
 
-  void _showProductForm(BuildContext context, PosProvider pos, {Product? product}) {
+  void _showProductForm(BuildContext context, PosProvider pos, bool isDark, {Product? product}) {
     final isEdit = product != null;
     final nameController = TextEditingController(text: isEdit ? product.name : '');
     final sellPriceController = TextEditingController(text: isEdit ? product.sellingPrice.toString() : '');
@@ -185,9 +394,6 @@ class ProductManagementScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
-          final theme = Theme.of(context);
-          final isDark = theme.brightness == Brightness.dark;
-          
           return Container(
             padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, MediaQuery.of(context).viewInsets.bottom + 20.h),
             decoration: BoxDecoration(
@@ -221,12 +427,12 @@ class ProductManagementScreen extends StatelessWidget {
                     child: Container(
                       height: 180.h,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E2938) : Colors.black.withValues(alpha: 0.02),
+                        color: isDark ? const Color(0xFF1E2938) : const Color(0xFFF3F4F6),
                         borderRadius: BorderRadius.circular(30.r),
                         border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05)),
                       ),
                       child: currentImagePath != null
-                          ? ClipRRect(borderRadius: BorderRadius.circular(30.r), child: _buildImagePreview(currentImagePath!, pos, isDark))
+                          ? ClipRRect(borderRadius: BorderRadius.circular(30.r), child: _buildImagePreviewLocal(currentImagePath!, pos, isDark))
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -235,7 +441,7 @@ class ProductManagementScreen extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: isDark ? const Color(0xFF1E2938) : Colors.white, 
                                     borderRadius: BorderRadius.circular(12.r), 
-                                    border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black12)
+                                    border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05))
                                   ),
                                   child: Icon(Icons.image_outlined, color: isDark ? Colors.white24 : Colors.black26),
                                 ),
@@ -274,7 +480,7 @@ class ProductManagementScreen extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12.w),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E2938) : Colors.black.withValues(alpha: 0.02), 
+                      color: isDark ? const Color(0xFF1E2938) : const Color(0xFFF3F4F6), 
                       borderRadius: BorderRadius.circular(10.r), 
                       border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05))
                     ),
@@ -315,8 +521,8 @@ class ProductManagementScreen extends StatelessWidget {
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 16.h),
-                      decoration: BoxDecoration(color: const Color(0xFFBEF364), borderRadius: BorderRadius.circular(23.r)),
-                      child: Text('Submit', textAlign: TextAlign.center, style: TextStyle(color: const Color(0xFF111727), fontSize: 24.sp, fontWeight: FontWeight.w600)),
+                      decoration: BoxDecoration(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), borderRadius: BorderRadius.circular(23.r)),
+                      child: Text('Submit', textAlign: TextAlign.center, style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 24.sp, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
@@ -337,7 +543,7 @@ class ProductManagementScreen extends StatelessWidget {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E2938) : Colors.black.withValues(alpha: 0.02), 
+            color: isDark ? const Color(0xFF1E2938) : const Color(0xFFF3F4F6), 
             borderRadius: BorderRadius.circular(8.r), 
             border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05))
           ),
@@ -356,11 +562,10 @@ class ProductManagementScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildImagePreview(String path, PosProvider pos, bool isDark) {
+  Widget _buildImagePreviewLocal(String path, PosProvider pos, bool isDark) {
     if (path.startsWith('blob:')) {
       return Image.network(path, fit: BoxFit.cover);
     }
-
     final url = pos.apiService.resolveImageUrl(path);
     return Image.network(
       url, 

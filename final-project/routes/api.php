@@ -73,9 +73,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Transactions
     Route::get('/transactions', [TransactionController::class, 'index']);
-    Route::get('/transactions/{id}', [TransactionController::class, 'show']);
+    Route::post('/transactions/initiate-payment', [TransactionController::class, 'initiatePayment']); // MUST be before {id} wildcard
     Route::post('/transactions', [TransactionController::class, 'store']);
-    Route::post('/transactions/initiate-payment', [TransactionController::class, 'initiatePayment']);
+    Route::get('/transactions/{id}', [TransactionController::class, 'show']);
     Route::get('/transactions/{id}/print', [TransactionController::class, 'print']);
 
     // Finance (Income & Expense)
@@ -85,6 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/finance/expenses', [FinanceController::class, 'expenses']);
     Route::post('/finance/expenses', [FinanceController::class, 'storeExpense']);
     Route::get('/finance/export', [FinanceController::class, 'exportPdf']);
+    Route::get('/finance/export/excel', [FinanceController::class, 'exportExcel']);
 
     // Sync & Daily Closing
     Route::get('/sync/pending', [SyncController::class, 'pendingLogs']);

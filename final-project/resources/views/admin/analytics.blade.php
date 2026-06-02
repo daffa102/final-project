@@ -5,7 +5,7 @@
 
 <div class="page-head">
     <h2>Analytics</h2>
-    <p>Visualisasi data pertumbuhan dan aktivitas pengguna NeoPay</p>
+    <p>Visualisasi data pertumbuhan dan aktivitas pengguna Kash.</p>
 </div>
 
 {{-- Summary Cards --}}
@@ -90,17 +90,17 @@
                 <div style="flex:1;">
                     <div class="qs-row">
                         <div class="d-flex align-items-center gap-2 qs-label">
-                            <span style="width:10px;height:10px;border-radius:50%;background:#14b8a6;display:inline-block;"></span>
+                            <span style="width:10px;height:10px;border-radius:50%;background:#2dd4bf;display:inline-block;"></span>
                             Active Users
                         </div>
                         <span class="qs-val" style="color:#2dd4bf;">{{ $activeUsers }}</span>
                     </div>
                     <div class="qs-row">
                         <div class="d-flex align-items-center gap-2 qs-label">
-                            <span style="width:10px;height:10px;border-radius:50%;background:#6366f1;display:inline-block;"></span>
+                            <span style="width:10px;height:10px;border-radius:50%;background:#6b7280;display:inline-block;"></span>
                             Inactive Users
                         </div>
-                        <span class="qs-val" style="color:#a5b4fc;">{{ $inactiveUsers }}</span>
+                        <span class="qs-val" style="color:#9ca3af;">{{ $inactiveUsers }}</span>
                     </div>
                 </div>
             </div>
@@ -122,7 +122,7 @@
                 </div>
                 <div class="qs-row">
                     <span class="qs-label">Monthly Peak</span>
-                    <span class="qs-val" style="color:#a5b4fc;">
+                    <span class="qs-val" style="color:#BEF364;">
                         {{ $chartData->count() > 0 ? $chartData->sortByDesc('count')->first()->count : 0 }} users
                     </span>
                 </div>
@@ -145,16 +145,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (mc) {
         const ctx = mc.getContext('2d');
         const grad = ctx.createLinearGradient(0, 0, 0, 180);
-        grad.addColorStop(0, 'rgba(99,102,241,0.22)');
-        grad.addColorStop(1, 'rgba(99,102,241,0)');
+        grad.addColorStop(0, 'rgba(190,243,100,0.22)');
+        grad.addColorStop(1, 'rgba(190,243,100,0)');
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels: JSON.parse(mc.dataset.labels || '[]'),
                 datasets: [{ label: 'New Users', data: JSON.parse(mc.dataset.counts || '[]'),
-                    borderColor: '#6366f1', backgroundColor: grad, borderWidth: 2.5,
+                    borderColor: '#BEF364', backgroundColor: grad, borderWidth: 2.5,
                     tension: 0.45, fill: true, pointBackgroundColor: '#1e1e1e',
-                    pointBorderColor: '#6366f1', pointBorderWidth: 2, pointRadius: 4 }]
+                    pointBorderColor: '#BEF364', pointBorderWidth: 2, pointRadius: 4 }]
             },
             options: chartOpts('new users per month')
         });
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: ['Active', 'Inactive'],
                 datasets: [{ data: [activeCount, inactiveCount],
-                    backgroundColor: ['#14b8a6', '#6366f1'],
+                    backgroundColor: ['#2dd4bf', '#6b7280'],
                     borderColor: '#1e1e1e', borderWidth: 3, hoverOffset: 4 }]
             },
             options: {

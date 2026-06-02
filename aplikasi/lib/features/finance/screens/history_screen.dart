@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../pos/providers/pos_provider.dart';
 import 'receipt_viewer_screen.dart';
+import '../../closing/screens/daily_closing_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -52,7 +54,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   children: [
                     _buildFilters(isDark),
                     SizedBox(height: 16.h),
-                    _buildSummaryCard(totalIncome, currencyFormat),
+                    _buildSummaryCard(totalIncome, currencyFormat, isDark),
                     SizedBox(height: 16.h),
                     _buildMarginChart(allTransactions, isDark, marginPercent),
                     SizedBox(height: 16.h),
@@ -127,14 +129,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
               fontFamily: 'Poppins',
             ),
           ),
-          Container(
-            width: 40.w,
-            height: 40.w,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E2938) : Colors.black.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(Icons.more_vert, color: textColor),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyClosingScreen())),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E2938) : const Color(0xFFF4FCE3),
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
+                  ),
+                  child: Text(
+                    'Tutup kasir',
+                    style: TextStyle(
+                      color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              GestureDetector(
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                child: Container(
+                  width: 36.w,
+                  height: 36.w,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+                  ),
+                  child: Icon(Icons.person_outline, color: isDark ? Colors.white : Colors.black87, size: 20.r),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -161,7 +191,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFFBEF364) : (isDark ? const Color(0xFF1E2938) : Colors.white),
+          color: isActive ? (isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)) : (isDark ? const Color(0xFF1E2938) : Colors.white),
           borderRadius: BorderRadius.circular(30.r),
           boxShadow: isActive || isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]
         ),
@@ -170,13 +200,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
             Icon(
               Icons.circle,
               size: 10.w,
-              color: isActive ? const Color(0xFF111727) : (isDark ? const Color(0xFFBEF364).withValues(alpha: 0.5) : Colors.black26),
+              color: isActive ? (isDark ? const Color(0xFF111727) : Colors.white) : (isDark ? const Color(0xFFBEF364).withValues(alpha: 0.5) : Colors.black26),
             ),
             SizedBox(width: 8.w),
             Text(
               label,
               style: TextStyle(
-                color: isActive ? const Color(0xFF111727) : (isDark ? Colors.white70 : Colors.black87),
+                color: isActive ? (isDark ? const Color(0xFF111727) : Colors.white) : (isDark ? Colors.white70 : Colors.black87),
                 fontSize: 14.sp,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               ),
@@ -187,16 +217,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildSummaryCard(double totalIncome, NumberFormat format) {
+  Widget _buildSummaryCard(double totalIncome, NumberFormat format, bool isDark) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(24.r),
       decoration: BoxDecoration(
-        color: const Color(0xFFBEF364),
+        color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFBEF364).withValues(alpha: 0.2),
+            color: (isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)).withValues(alpha: 0.2),
             blurRadius: 15,
             offset: const Offset(0, 8),
           )
@@ -208,7 +238,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Text(
             'TOTAL TRANSACTION',
             style: TextStyle(
-              color: const Color(0xFF1D1B20).withValues(alpha: 0.6),
+              color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70,
               fontSize: 12.sp,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.2,
@@ -218,7 +248,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Text(
             format.format(totalIncome),
             style: TextStyle(
-              color: const Color(0xFF1D1B20),
+              color: isDark ? const Color(0xFF111727) : Colors.white,
               fontSize: 32.sp,
               fontWeight: FontWeight.w800,
             ),
@@ -257,13 +287,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBEF364).withValues(alpha: 0.1),
+                  color: (isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
                   marginPercent,
                   style: TextStyle(
-                    color: const Color(0xFFBEF364),
+                    color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w800,
                   ),
@@ -333,7 +363,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       width: 32.w,
       height: (height < 10 ? 10 : height).h,
       decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFBEF364) : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+        color: isActive ? (isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)) : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
         borderRadius: BorderRadius.circular(8.r),
       ),
     );
@@ -403,7 +433,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Text(
                         format.format(amount),
                         style: TextStyle(
-                          color: const Color(0xFFBEF364),
+                          color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w800,
                         ),

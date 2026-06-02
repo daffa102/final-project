@@ -258,6 +258,20 @@ class PosProvider with ChangeNotifier {
       } else {
         _error = response.data['message'] ?? 'Gagal memulai pembayaran';
       }
+    } on dio.DioException catch (e) {
+      final resData = e.response?.data;
+      if (resData is Map && resData.containsKey('message')) {
+        _error = resData['message'];
+      } else if (resData is Map && resData.containsKey('errors')) {
+        final errors = resData['errors'];
+        if (errors is Map) {
+          _error = errors.values.first is List ? errors.values.first[0] : errors.values.first.toString();
+        } else {
+          _error = errors.toString();
+        }
+      } else {
+        _error = e.response?.statusMessage ?? e.message;
+      }
     } catch (e) {
       _error = e.toString();
     }
@@ -308,9 +322,12 @@ class PosProvider with ChangeNotifier {
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           clearCart();
-          await syncMasterData(); // Refresh products & transactions
           _isLoading = false;
           notifyListeners();
+          // Refresh data in background — don't let sync failures affect checkout success
+          try {
+            await syncMasterData();
+          } catch (_) {}
           return true;
         } else {
           _error = response.data['message'] ?? 'Gagal memproses transaksi';
@@ -390,6 +407,20 @@ class PosProvider with ChangeNotifier {
         notifyListeners();
         return true;
       }
+    } on dio.DioException catch (e) {
+      final resData = e.response?.data;
+      if (resData is Map && resData.containsKey('message')) {
+        _error = resData['message'];
+      } else if (resData is Map && resData.containsKey('errors')) {
+        final errors = resData['errors'];
+        if (errors is Map) {
+          _error = errors.values.first is List ? errors.values.first[0] : errors.values.first.toString();
+        } else {
+          _error = errors.toString();
+        }
+      } else {
+        _error = e.response?.statusMessage ?? e.message;
+      }
     } catch(e) {
       _error = e.toString();
     }
@@ -465,7 +496,42 @@ class PosProvider with ChangeNotifier {
     required double amount,
     String? note,
   }) async {
-    if (kIsWeb) return;
+    if (kIsWeb) {
+      // Mode Web: kirim ke API
+      try {
+        final response = await apiService.client.post('/finance/manual-transactions', data: {
+          'type': type,
+          'category': category,
+          'amount': amount,
+          'note': note ?? '',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          // Tambah ke list lokal agar UI langsung update
+          _manualTransactions.insert(0, {
+            'type': type,
+            'category': category,
+            'amount': amount,
+            'note': note,
+            'created_at': DateTime.now().toIso8601String(),
+          });
+          notifyListeners();
+        }
+      } catch (e) {
+        // Jika API belum ada, fallback: tambah ke memory saja agar UI tetap update
+        _manualTransactions.insert(0, {
+          'type': type,
+          'category': category,
+          'amount': amount,
+          'note': note,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+        notifyListeners();
+        debugPrint('addManualTransaction (web) fallback to memory: $e');
+      }
+      return;
+    }
+    // Mode Mobile: simpan ke Drift DB
     await database.into(database.manualTransactions).insert(ManualTransactionsCompanion.insert(
       type: type,
       category: category,

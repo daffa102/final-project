@@ -53,6 +53,22 @@ class StoreController extends Controller
             $data['logo_url'] = 'storage/' . $path;
         }
 
+        // Handle QRIS Upload
+        if ($request->has('qris_bytes') && $request->has('qris_name')) {
+            $bytes = $request->qris_bytes;
+            $name = $request->qris_name;
+            $filename = time() . '_' . $name;
+            $path = 'qris/' . $filename;
+            
+            // If bytes is an array (from JSON), convert to string
+            if (is_array($bytes)) {
+                $bytes = pack('C*', ...$bytes);
+            }
+
+            \Illuminate\Support\Facades\Storage::disk('public')->put($path, $bytes);
+            $data['qris_url'] = 'storage/' . $path;
+        }
+
         $profile = StoreProfile::updateOrCreate(
             ['user_id' => $request->user()->id],
             $data
