@@ -13,7 +13,7 @@ import 'finance/screens/history_screen.dart';
 import '../core/navigation/navigation_provider.dart';
 import 'closing/screens/daily_closing_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
