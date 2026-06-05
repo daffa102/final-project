@@ -571,34 +571,9 @@
         // Show loading on button
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
-
-        e.preventDefault();
-
-        const formData = new FormData(form);
-
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => {
-            // Jika berhasil login, Laravel akan mengalihkan (redirect) ke dashboard
-            // Kita cek apakah url akhirnya mengarah ke '/admin/dashboard' atau '/' (bukan '/login')
-            if (response.redirected && !response.url.includes('/login')) {
-                showSuccess();
-                setTimeout(() => {
-                    window.location.href = response.url;
-                }, 1500);
-            } else {
-                // Jika gagal (kembali ke halaman login), kirim form secara normal
-                // agar error validation dari Laravel muncul di layar.
-                form.submit();
-            }
-        })
-        .catch(() => {
-            // Network error fallback
-            form.submit();
-        });
+        // Submit form secara normal (bukan fetch) agar session cookie
+        // diproses dengan benar oleh browser
+        // Biarkan form submit default berjalan (tidak ada e.preventDefault())
     });
 </script>
 
