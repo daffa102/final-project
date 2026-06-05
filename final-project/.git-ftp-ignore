@@ -9,6 +9,3 @@
 /cacert.pem
 /cacert-new.pem
 /ftp-deploy.cjs
-
-# Karena menggunakan SSH, folder vendor tidak perlu diupload via FTP
-/vendor/

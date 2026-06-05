@@ -27,12 +27,43 @@ jobs:
         npm install
         npm run build
 
-    # Opsi Tambahan: Jika hosting Anda TIDAK memiliki SSH/Composer,
-    # hapus tanda '#' di 3 baris di bawah ini untuk menginstal vendor di GitHub dan mengunggahnya:
-    # - name: 📦 Install Composer Dependencies
-    #   run: |
-    #     cd final-project
-    #     composer install --no-dev --optimize-autoloader --no-interaction
+    - name: 📦 Install Composer Dependencies
+      run: |
+        cd final-project
+        composer install --no-dev --optimize-autoloader --no-interaction
+
+    - name: 📝 Create .env for Production
+      run: |
+        cd final-project
+        echo "APP_NAME=Kash" > .env
+        echo "APP_ENV=production" >> .env
+        echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+        echo "APP_DEBUG=false" >> .env
+        echo "APP_URL=${{ secrets.APP_URL }}" >> .env
+        echo "" >> .env
+        echo "LOG_CHANNEL=stack" >> .env
+        echo "LOG_STACK=single" >> .env
+        echo "LOG_LEVEL=error" >> .env
+        echo "" >> .env
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+        echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+        echo "" >> .env
+        echo "SESSION_DRIVER=file" >> .env
+        echo "SESSION_LIFETIME=120" >> .env
+        echo "SESSION_ENCRYPT=false" >> .env
+        echo "SESSION_PATH=/" >> .env
+        echo "SESSION_DOMAIN=null" >> .env
+        echo "" >> .env
+        echo "CACHE_STORE=file" >> .env
+        echo "QUEUE_CONNECTION=sync" >> .env
+        echo "FILESYSTEM_DISK=local" >> .env
+        echo "" >> .env
+        echo "MAIL_MAILER=log" >> .env
+        echo "VITE_APP_NAME=Kash" >> .env
 
     - name: 📂 Sync Files to Server via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
