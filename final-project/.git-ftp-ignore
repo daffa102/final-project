@@ -1,0 +1,14 @@
+/.git/
+/.github/
+/node_modules/
+/tests/
+/phpunit.xml
+/vite.config.js
+/package.json
+/package-lock.json
+/cacert.pem
+/cacert-new.pem
+/ftp-deploy.cjs
+
+# Karena menggunakan SSH, folder vendor tidak perlu diupload via FTP
+/vendor/
