@@ -171,6 +171,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
 
   void _showSuccessFeedback(BuildContext safeContext, Map<String, dynamic>? trx) {
     ScaffoldMessenger.of(safeContext).clearSnackBars(); // Clear previous snackbars so they don't stack
+    final bottomInset = MediaQuery.of(safeContext).padding.bottom;
     ScaffoldMessenger.of(safeContext).showSnackBar(SnackBar(
       content: Row(
         children: [
@@ -196,6 +197,8 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
       backgroundColor: const Color(0xFFBEF364),
       duration: const Duration(seconds: 3), // Reduced duration
       behavior: SnackBarBehavior.floating,
+      // Naik di atas floating navbar (tinggi navbar ~80dp + safe area)
+      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, bottomInset + 90),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
     ));
   }
