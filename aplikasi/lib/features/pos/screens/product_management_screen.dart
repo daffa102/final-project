@@ -467,9 +467,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
                   Row(
                     children: [
-                      Expanded(child: _buildLabelledField('Stock now', stockNowController, '0', isDark, isNum: true)),
+                      Expanded(child: _buildLabelledField('Stok Saat Ini', stockNowController, '0', isDark, isNum: true, readOnly: true)),
                       SizedBox(width: 10.w),
-                      Expanded(child: _buildLabelledField('Latest Stock', latestStockController, '0', isDark, isNum: true)),
+                      Expanded(child: _buildLabelledField(isEdit ? 'Tambah Stok' : 'Stok Awal', latestStockController, '0', isDark, isNum: true)),
                     ],
                   ),
                   SizedBox(height: 16.h),
@@ -534,7 +534,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     );
   }
 
-  Widget _buildLabelledField(String label, TextEditingController controller, String hint, bool isDark, {bool isNum = false}) {
+  Widget _buildLabelledField(String label, TextEditingController controller, String hint, bool isDark, {bool isNum = false, bool readOnly = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -543,18 +543,26 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E2938) : const Color(0xFFF3F4F6), 
+            color: readOnly
+                ? (isDark ? const Color(0xFF151D2A) : const Color(0xFFE8E8E8))
+                : (isDark ? const Color(0xFF1E2938) : const Color(0xFFF3F4F6)),
             borderRadius: BorderRadius.circular(8.r), 
             border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05))
           ),
           child: TextField(
             controller: controller,
             keyboardType: isNum ? TextInputType.number : TextInputType.text,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            readOnly: readOnly,
+            style: TextStyle(
+              color: readOnly
+                  ? (isDark ? Colors.white38 : Colors.black38)
+                  : (isDark ? Colors.white : Colors.black87),
+            ),
             decoration: InputDecoration(
               hintText: hint, 
               hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26), 
-              border: InputBorder.none
+              border: InputBorder.none,
+              suffixIcon: readOnly ? Icon(Icons.lock_outline, size: 14.r, color: isDark ? Colors.white24 : Colors.black26) : null,
             ),
           ),
         ),
