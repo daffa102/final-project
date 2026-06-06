@@ -174,7 +174,7 @@ class _PosScreenState extends State<PosScreen> {
           final isDark = theme.brightness == Brightness.dark;
 
           return Padding(
-            padding: EdgeInsets.only(bottom: 70.h),
+            padding: EdgeInsets.only(bottom: 120.h),
             child: GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               child: Container(
@@ -381,7 +381,14 @@ class _PosScreenState extends State<PosScreen> {
 
   Widget _buildProductImage(Product product, PosProvider pos) {
     final String? path = product.imagePath;
-    if (path == null || path.isEmpty) return const SizedBox.shrink();
+
+    // Tampilkan placeholder jika tidak ada gambar
+    if (path == null || path.isEmpty) {
+      return Container(
+        color: Colors.transparent,
+        child: Icon(Icons.inventory_2_outlined, color: Colors.grey.withValues(alpha: 0.4), size: 32.r),
+      );
+    }
     
     if (kIsWeb && path.startsWith('blob:')) {
       return Image.network(path, fit: BoxFit.cover);
@@ -390,8 +397,12 @@ class _PosScreenState extends State<PosScreen> {
     final url = pos.apiService.resolveImageUrl(path);
     return Image.network(
       url, 
-      fit: BoxFit.cover, 
-      errorBuilder: (ctx, err, stack) => const SizedBox.shrink()
+      fit: BoxFit.cover,
+      loadingBuilder: (ctx, child, progress) {
+        if (progress == null) return child;
+        return Center(child: SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey.withValues(alpha: 0.4))));
+      },
+      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image_outlined, color: Colors.grey.withValues(alpha: 0.4), size: 32.r),
     );
   }
 
