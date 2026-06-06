@@ -24,7 +24,7 @@ jobs:
     - name: 🔨 Build Frontend Assets (Vite)
       run: |
         cd final-project
-        npm ci
+        npm install
         npm run build
 
     - name: 📝 Create .env for Production
@@ -68,7 +68,6 @@ jobs:
         rm -f final-project/phpunit.xml
         rm -f final-project/vite.config.js
         rm -f final-project/package.json
-        rm -f final-project/package-lock.json
         rm -rf final-project/node_modules
         rm -rf final-project/tests
         rm -f final-project/test_auth.php
