@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/screens/login_screen.dart';
 import '../../pos/screens/product_management_screen.dart';
 import '../../closing/screens/daily_closing_screen.dart';
+import '../../finance/screens/expense_screen.dart';
+import '../../finance/screens/income_screen.dart';
 import '../../../core/theme/theme_provider.dart';
 import 'printer_settings_screen.dart';
 import 'store_settings_screen.dart';
@@ -56,9 +59,16 @@ class ProfileScreen extends StatelessWidget {
                           actions: [
                             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
                             TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                context.read<AuthProvider>().logout();
+                              onPressed: () async {
+                                Navigator.pop(context); // tutup dialog
+                                await context.read<AuthProvider>().logout();
+                                if (context.mounted) {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                    (route) => false, // hapus semua route sebelumnya
+                                  );
+                                }
                               },
                               child: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
                             ),
@@ -105,6 +115,18 @@ class ProfileScreen extends StatelessWidget {
                 icon: Icons.inventory_2_outlined,
                 title: 'Manajemen Produk',
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductManagementScreen())),
+              ),
+              _buildProfileOption(
+                isDark,
+                icon: Icons.remove_circle_outline,
+                title: 'Catat Pengeluaran',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpenseScreen())),
+              ),
+              _buildProfileOption(
+                isDark,
+                icon: Icons.add_circle_outline,
+                title: 'Catat Pemasukan',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IncomeScreen())),
               ),
               _buildProfileOption(
                 isDark,

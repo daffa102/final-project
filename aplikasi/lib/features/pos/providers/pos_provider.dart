@@ -721,4 +721,25 @@ class PosProvider with ChangeNotifier {
     }
     return false;
   }
+
+  Future<bool> updateCategory(int id, String name) async {
+    try {
+      final response = await apiService.client.put('/categories/$id', data: {'name': name});
+      if (response.statusCode == 200) {
+        final index = _categories.indexWhere((c) => c.id == id);
+        if (index >= 0) {
+          _categories[index] = Category(id: id, name: name);
+          notifyListeners();
+        }
+        return true;
+      }
+    } on dio.DioException catch (e) {
+      _error = e.response?.data?['message'] ?? 'Gagal mengubah kategori';
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+    return false;
+  }
 }

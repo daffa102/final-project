@@ -5,7 +5,6 @@ import 'package:dio/dio.dart' as dio;
 import 'package:provider/provider.dart';
 import 'package:printing/printing.dart';
 import '../providers/pos_provider.dart';
-import '../../../core/api/api_service.dart';
 import '../../closing/screens/daily_closing_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../../core/utils/file_downloader.dart';
@@ -440,8 +439,12 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget _buildExportButton(String label, bool isDark) {
     return GestureDetector(
       onTap: () async {
-        final api = ApiService();
-        final now = DateTime.now();
+        // Pakai apiService dari PosProvider yang sudah punya token auth
+        final pos = context.read<PosProvider>();
+        final api = pos.apiService;
+        // Pakai periode yang sedang ditampilkan, bukan now
+        final exportDate = _selectedDate;
+        final now = exportDate;
         final scaffoldMessenger = ScaffoldMessenger.of(context);
 
         scaffoldMessenger.showSnackBar(
@@ -453,16 +456,30 @@ class _ReportScreenState extends State<ReportScreen> {
             final response = await api.client.get(
               '/finance/export',
               queryParameters: {'month': now.month, 'year': now.year},
-              options: dio.Options(responseType: dio.ResponseType.bytes),
+              options: dio.Options(
+                responseType: dio.ResponseType.bytes,
+                receiveTimeout: const Duration(seconds: 60),
+              ),
             );
 
+            if (!context.mounted) return;
             await Printing.layoutPdf(
               onLayout: (_) => response.data,
               name: 'Laporan-Laba-Rugi-${now.year}-${now.month}.pdf',
             );
+            scaffoldMessenger.hideCurrentSnackBar();
+          } on dio.DioException catch (e) {
+            final msg = e.response?.statusCode == 500
+                ? 'Server error saat generate PDF. Cek log server.'
+                : e.response?.statusCode == 401
+                    ? 'Sesi habis, silakan login ulang.'
+                    : 'Gagal export PDF: ${e.message}';
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+            );
           } catch (e) {
             scaffoldMessenger.showSnackBar(
-              SnackBar(content: Text('Gagal export PDF: $e'), behavior: SnackBarBehavior.floating),
+              SnackBar(content: Text('Gagal export PDF: $e'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
           }
         } else if (label == 'Excel') {
@@ -470,20 +487,29 @@ class _ReportScreenState extends State<ReportScreen> {
             final response = await api.client.get(
               '/finance/export/excel',
               queryParameters: {'month': now.month, 'year': now.year},
-              options: dio.Options(responseType: dio.ResponseType.bytes),
+              options: dio.Options(
+                responseType: dio.ResponseType.bytes,
+                receiveTimeout: const Duration(seconds: 60),
+              ),
             );
 
             final bytes = response.data as List<int>;
             final fileName = 'Laporan-Laba-Rugi-${now.year}-${now.month}.xlsx';
-
-            await downloadFile(
-              bytes,
-              fileName,
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            if (!context.mounted) return;
+            await downloadFile(bytes, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            scaffoldMessenger.hideCurrentSnackBar();
+          } on dio.DioException catch (e) {
+            final msg = e.response?.statusCode == 500
+                ? 'Server error saat generate Excel. Cek log server.'
+                : e.response?.statusCode == 401
+                    ? 'Sesi habis, silakan login ulang.'
+                    : 'Gagal export Excel: ${e.message}';
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
           } catch (e) {
             scaffoldMessenger.showSnackBar(
-              SnackBar(content: Text('Gagal export Excel: $e'), behavior: SnackBarBehavior.floating),
+              SnackBar(content: Text('Gagal export Excel: $e'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
           }
         }

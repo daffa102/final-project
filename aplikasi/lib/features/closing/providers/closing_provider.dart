@@ -38,7 +38,8 @@ class ClosingProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final now = DateTime.now();
+      final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final response = await _apiService.client.get('/closing-summary', queryParameters: {'date': today});
       
       if (response.statusCode == 200 && response.data['data'] != null) {
@@ -73,21 +74,22 @@ class ClosingProvider with ChangeNotifier {
   }
 
   // 3. Tembakkan ke Server Admin Web untuk dicatat (Daily Closing)
+  // userId diambil dari luar (AuthProvider), BUKAN hardcode
   Future<bool> submitDailyClosing(int userId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
+      final now = DateTime.now();
+      // Format tanggal lokal YYYY-MM-DD, hindari masalah timezone UTC vs WIB
+      final todayStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
       final payload = {
-        'user_id': userId,
-        'expected_cash': _expectedCash,
         'actual_cash': _actualCash,
-        'difference': difference,
-        'notes': _notes,
         'note': _notes,
-        'date': DateTime.now().toIso8601String().substring(0, 10), // YYYY-MM-DD
-        'closing_date': DateTime.now().toIso8601String(),
+        'date': todayStr,
+        'closing_date': todayStr,
       };
 
       // Tembak laporan ke Web Backend (Laravel)

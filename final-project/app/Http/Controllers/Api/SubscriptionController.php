@@ -20,6 +20,14 @@ class SubscriptionController extends Controller
     {
         $serverKey = env('MIDTRANS_SERVER_KEY');
         $isProduction = env('MIDTRANS_IS_PRODUCTION', false);
+
+        if (empty($serverKey)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Konfigurasi pembayaran belum diatur. Hubungi administrator.'
+            ], 503);
+        }
+
         $baseUrl = $isProduction 
             ? 'https://api.midtrans.com/v2/charge' 
             : 'https://api.sandbox.midtrans.com/v2/charge';
