@@ -36,6 +36,7 @@ jobs:
           echo "APP_DEBUG=false"
           echo "APP_URL=${{ secrets.APP_URL }}"
           echo ""
+          echo "APP_TIMEZONE=Asia/Jakarta"
           echo "LOG_CHANNEL=stack"
           echo "LOG_STACK=single"
           echo "LOG_LEVEL=error"
