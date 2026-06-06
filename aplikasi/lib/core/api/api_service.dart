@@ -8,7 +8,7 @@ class ApiService {
 
   ApiService._internal();
 
-  static const String _productionUrl = 'http://kash.dappa.my.id/api';
+  static const String _productionUrl = 'https://kash.dappa.my.id/api';
 
   static String get baseUrl {
     if (kIsWeb) {
