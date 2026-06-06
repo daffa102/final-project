@@ -145,7 +145,7 @@ class _PosScreenState extends State<PosScreen> {
                       ? Center(child: CircularProgressIndicator(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)))
                       : RepaintBoundary(
                           child: GridView.builder(
-                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 220.h),
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, pos.cart.isEmpty ? 20.h : 100.h),
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 3,
                               childAspectRatio: 0.72,
@@ -160,72 +160,59 @@ class _PosScreenState extends State<PosScreen> {
                           ),
                         ),
                 ),
-              ],
-            );
-          },
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Consumer<PosProvider>(
-        builder: (context, pos, child) {
-          if (pos.cart.isEmpty) return const SizedBox.shrink();
 
-          final theme = Theme.of(context);
-          final isDark = theme.brightness == Brightness.dark;
-
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: 80.h,
-              left: 20.w,
-              right: 20.w,
-            ),
-            child: GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
-                  borderRadius: BorderRadius.circular(16.r),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5))
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // Cart Bar — tepat di atas nav bar, tidak menggunakan floatingActionButton
+                if (pos.cart.isNotEmpty)
+                  GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                    child: Container(
+                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                        borderRadius: BorderRadius.circular(16.r),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 3))
+                        ],
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            '${pos.cart.length} item - ${currencyFormat.format(pos.cartTotal)}',
-                            style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.8) : Colors.white70, fontSize: 13.sp, fontWeight: FontWeight.w500),
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${pos.cart.length} item - ${currencyFormat.format(pos.cartTotal)}',
+                                  style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70, fontSize: 12.sp, fontWeight: FontWeight.w500),
+                                ),
+                                SizedBox(height: 2.h),
+                                Text(
+                                  'Lihat keranjang',
+                                  style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 15.sp, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
                           ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            'Lihat keranjang',
-                            style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF111727) : Colors.white,
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            child: Text(
+                              'Bayar',
+                              style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 13.sp, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF111727) : Colors.white,
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      child: Text(
-                        'Bayar',
-                        style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 14.sp, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -368,7 +355,7 @@ class _PosScreenState extends State<PosScreen> {
                       duration: const Duration(seconds: 2),
                       behavior: SnackBarBehavior.floating,
                       backgroundColor: isDark ? const Color(0xFF1E2938) : Colors.black87,
-                      margin: EdgeInsets.only(bottom: 250.h, left: 20.w, right: 20.w),
+                      margin: EdgeInsets.only(bottom: 20.h, left: 20.w, right: 20.w),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
                   );
