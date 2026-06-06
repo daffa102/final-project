@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart' as dio;
 import '../../pos/providers/pos_provider.dart';
 import 'map_picker_screen.dart';
 
@@ -82,34 +83,51 @@ class _StoreSettingsScreenState extends State<StoreSettingsScreen> {
     setState(() => _isLoading = true);
     try {
       final api = context.read<PosProvider>().apiService;
-      
-      final Map<String, dynamic> data = {
+
+      // Always use FormData so Dio sets correct Content-Type: multipart/form-data
+      final formData = dio.FormData.fromMap({
         'store_name': _nameController.text,
         'address': _addressController.text,
         'phone_number': _phoneController.text,
         'receipt_footer': _footerController.text,
-      };
+      });
 
       if (_imageFile != null) {
-        data['logo_bytes'] = await _imageFile!.readAsBytes();
-        data['logo_name'] = _imageFile!.name;
+        final bytes = await _imageFile!.readAsBytes();
+        formData.files.add(MapEntry(
+          'logo',
+          dio.MultipartFile.fromBytes(bytes, filename: _imageFile!.name),
+        ));
       }
 
       if (_qrisFile != null) {
-        data['qris_bytes'] = await _qrisFile!.readAsBytes();
-        data['qris_name'] = _qrisFile!.name;
+        final bytes = await _qrisFile!.readAsBytes();
+        formData.files.add(MapEntry(
+          'qris',
+          dio.MultipartFile.fromBytes(bytes, filename: _qrisFile!.name),
+        ));
       }
 
-      final response = await api.client.post('/store', data: data);
+      final response = await api.client.post(
+        '/store',
+        data: formData,
+      );
 
       if (response.statusCode == 200) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pengaturan toko berhasil disimpan!'), backgroundColor: Colors.green, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Pengaturan toko berhasil disimpan!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ));
         Navigator.pop(context);
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan pengaturan: $e'), behavior: SnackBarBehavior.floating));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Gagal menyimpan pengaturan: $e'),
+        behavior: SnackBarBehavior.floating,
+      ));
     } finally {
       setState(() => _isLoading = false);
     }
