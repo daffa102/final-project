@@ -5,7 +5,6 @@ import 'package:dio/dio.dart' as dio;
 import 'package:provider/provider.dart';
 import 'package:printing/printing.dart';
 import '../providers/pos_provider.dart';
-import '../../../core/api/api_service.dart';
 import '../../closing/screens/daily_closing_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../../core/utils/file_downloader.dart';
@@ -440,7 +439,9 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget _buildExportButton(String label, bool isDark) {
     return GestureDetector(
       onTap: () async {
-        final api = ApiService();
+        // Pakai apiService dari PosProvider yang sudah punya token auth
+        final pos = context.read<PosProvider>();
+        final api = pos.apiService;
         final now = DateTime.now();
         final scaffoldMessenger = ScaffoldMessenger.of(context);
 

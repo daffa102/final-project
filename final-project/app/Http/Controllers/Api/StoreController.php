@@ -10,20 +10,27 @@ class StoreController extends Controller
 {
     public function show(Request $request)
     {
-        $profile = StoreProfile::where('user_id', $request->user()->id)->first();
-        
-        if (!$profile) {
-            // Create default if not exists
-            $profile = StoreProfile::create([
-                'user_id' => $request->user()->id,
-                'store_name' => 'Toko Saya',
-            ]);
-        }
+        try {
+            $profile = StoreProfile::where('user_id', $request->user()->id)->first();
+            
+            if (!$profile) {
+                $profile = StoreProfile::create([
+                    'user_id'    => $request->user()->id,
+                    'store_name' => 'Toko Saya',
+                ]);
+            }
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $profile
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'data'   => $profile
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('StoreController@show error: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal memuat profil toko: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(Request $request)
