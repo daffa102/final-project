@@ -45,167 +45,164 @@ class _PosScreenState extends State<PosScreen> {
       body: SafeArea(
         child: Consumer<PosProvider>(
           builder: (context, pos, child) {
-            return Column(
+            return Stack(
               children: [
-                // Custom Header
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Kasir',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
-                        ),
-                      ),
-                      Row(
+                Column(
+                  children: [
+                    // Custom Header
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          GestureDetector(
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyClosingScreen())),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF1E2938) : const Color(0xFFEFFFCA),
-                                borderRadius: BorderRadius.circular(20.r),
-                                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
-                              ),
-                              child: Text(
-                                'Tutup kasir',
-                                style: TextStyle(
-                                  color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w600,
+                          Text(
+                            'Kasir',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyClosingScreen())),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF1E2938) : const Color(0xFFEFFFCA),
+                                    borderRadius: BorderRadius.circular(20.r),
+                                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
+                                  ),
+                                  child: Text(
+                                    'Tutup kasir',
+                                    style: TextStyle(
+                                      color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          SizedBox(width: 8.w),
-                          GestureDetector(
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-                            child: Container(
-                              width: 36.w,
-                              height: 36.w,
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF1E2938) : Colors.white,
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+                              SizedBox(width: 8.w),
+                              GestureDetector(
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                                child: Container(
+                                  width: 36.w,
+                                  height: 36.w,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                                    borderRadius: BorderRadius.circular(10.r),
+                                    border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+                                  ),
+                                  child: Icon(Icons.person_outline, color: isDark ? Colors.white : Colors.black87, size: 20.r),
+                                ),
                               ),
-                              child: Icon(Icons.person_outline, color: isDark ? Colors.white : Colors.black87, size: 20.r),
-                            ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-
-                // Top Search Bar
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 0.h),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E2938) : Colors.white,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: isDark ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
                     ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) => pos.setSearchQuery(value),
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                      decoration: InputDecoration(
-                        hintText: 'Cari produk...',
-                        hintStyle: TextStyle(fontSize: 14.sp, color: isDark ? Colors.white54 : Colors.black38, fontFamily: 'Poppins'),
-                        border: InputBorder.none,
-                        icon: Icon(Icons.circle_outlined, color: isDark ? Colors.white54 : Colors.black38, size: 20),
-                      ),
-                    ),
-                  ),
-                ),
 
-                // Categories
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                  child: Row(
-                    children: [
-                      _buildCategoryChip(pos, 0, 'Semua', isDark),
-                      ...pos.categories.map((c) => _buildCategoryChip(pos, c.id, c.name, isDark)),
-                    ],
-                  ),
-                ),
-
-                // Product Grid
-                Expanded(
-                  child: pos.isLoading && pos.products.isEmpty
-                      ? Center(child: CircularProgressIndicator(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)))
-                      : RepaintBoundary(
-                          child: GridView.builder(
-                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, pos.cart.isEmpty ? 20.h : 100.h),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              childAspectRatio: 0.72,
-                              crossAxisSpacing: 12.w,
-                              mainAxisSpacing: 12.h,
-                            ),
-                            itemCount: pos.products.length,
-                            itemBuilder: (context, index) {
-                              final product = pos.products[index];
-                              return _buildProductCard(product, pos, isDark);
-                            },
+                    // Search Bar
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E2938) : Colors.white,
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: isDark ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) => pos.setSearchQuery(value),
+                          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                          decoration: InputDecoration(
+                            hintText: 'Cari produk...',
+                            hintStyle: TextStyle(fontSize: 14.sp, color: isDark ? Colors.white54 : Colors.black38, fontFamily: 'Poppins'),
+                            border: InputBorder.none,
+                            icon: Icon(Icons.circle_outlined, color: isDark ? Colors.white54 : Colors.black38, size: 20),
                           ),
                         ),
-                ),
-
-                // Cart Bar — tepat di atas nav bar, tidak menggunakan floatingActionButton
-                if (pos.cart.isNotEmpty)
-                  GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
-                        borderRadius: BorderRadius.circular(16.r),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 3))
-                        ],
                       ),
+                    ),
+
+                    // Categories
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${pos.cart.length} item - ${currencyFormat.format(pos.cartTotal)}',
-                                  style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70, fontSize: 12.sp, fontWeight: FontWeight.w500),
-                                ),
-                                SizedBox(height: 2.h),
-                                Text(
-                                  'Lihat keranjang',
-                                  style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 15.sp, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF111727) : Colors.white,
-                              borderRadius: BorderRadius.circular(10.r),
-                            ),
-                            child: Text(
-                              'Bayar',
-                              style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 13.sp, fontWeight: FontWeight.bold),
-                            ),
-                          ),
+                          _buildCategoryChip(pos, 0, 'Semua', isDark),
+                          ...pos.categories.map((c) => _buildCategoryChip(pos, c.id, c.name, isDark)),
                         ],
+                      ),
+                    ),
+
+                    // Product Grid — padding bawah cukup untuk cart bar
+                    Expanded(
+                      child: pos.isLoading && pos.products.isEmpty
+                          ? Center(child: CircularProgressIndicator(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)))
+                          : GridView.builder(
+                              padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, pos.cart.isEmpty ? 20.h : 90.h),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                childAspectRatio: 0.72,
+                                crossAxisSpacing: 12.w,
+                                mainAxisSpacing: 12.h,
+                              ),
+                              itemCount: pos.products.length,
+                              itemBuilder: (context, index) => _buildProductCard(pos.products[index], pos, isDark),
+                            ),
+                    ),
+                  ],
+                ),
+
+                // Cart Bar — overlay di paling bawah konten, tidak terpengaruh nav bar
+                if (pos.cart.isNotEmpty)
+                  Positioned(
+                    left: 16.w,
+                    right: 16.w,
+                    bottom: 12.h,
+                    child: GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                          borderRadius: BorderRadius.circular(16.r),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4))],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${pos.cart.length} item · ${currencyFormat.format(pos.cartTotal)}',
+                                    style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70, fontSize: 12.sp),
+                                  ),
+                                  Text(
+                                    'Lihat keranjang',
+                                    style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 15.sp, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF111727) : Colors.white,
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              child: Text('Bayar', style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 13.sp, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -355,7 +352,6 @@ class _PosScreenState extends State<PosScreen> {
                       duration: const Duration(seconds: 2),
                       behavior: SnackBarBehavior.floating,
                       backgroundColor: isDark ? const Color(0xFF1E2938) : Colors.black87,
-                      margin: EdgeInsets.only(bottom: 20.h, left: 20.w, right: 20.w),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
                   );
