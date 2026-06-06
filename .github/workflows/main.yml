@@ -59,6 +59,10 @@ jobs:
           echo ""
           echo "MAIL_MAILER=log"
           echo "VITE_APP_NAME=Kash"
+          echo ""
+          echo "MIDTRANS_SERVER_KEY=${{ secrets.MIDTRANS_SERVER_KEY }}"
+          echo "MIDTRANS_CLIENT_KEY=${{ secrets.MIDTRANS_CLIENT_KEY }}"
+          echo "MIDTRANS_IS_PRODUCTION=${{ secrets.MIDTRANS_IS_PRODUCTION }}"
         } > final-project/.env
 
     - name: 🚫 Remove files that should not be deployed
