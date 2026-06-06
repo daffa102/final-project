@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:io';
 import '../providers/pos_provider.dart';
 import '../models/product.dart';
 import 'category_management_screen.dart';
@@ -432,7 +433,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                         border: Border.all(color: isDark ? const Color(0xFF364152) : Colors.black.withValues(alpha: 0.05)),
                       ),
                       child: currentImagePath != null
-                          ? ClipRRect(borderRadius: BorderRadius.circular(30.r), child: _buildImagePreviewLocal(currentImagePath!, pos, isDark))
+                          ? ClipRRect(borderRadius: BorderRadius.circular(30.r), child: _buildImagePreviewLocal(currentImagePath!, pos, isDark, localFile: currentImageFile))
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -570,7 +571,21 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     );
   }
 
-  Widget _buildImagePreviewLocal(String path, PosProvider pos, bool isDark) {
+  Widget _buildImagePreviewLocal(String path, PosProvider pos, bool isDark, {XFile? localFile}) {
+    // Priority 1: newly picked file — use XFile bytes (works on web & mobile)
+    if (localFile != null) {
+      if (kIsWeb) {
+        // On web, XFile path is a blob URL
+        return Image.network(localFile.path, fit: BoxFit.cover,
+          errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: isDark ? Colors.white24 : Colors.black26));
+      } else {
+        // On mobile, use dart:io File
+        return Image.file(File(localFile.path), fit: BoxFit.cover,
+          errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: isDark ? Colors.white24 : Colors.black26));
+      }
+    }
+
+    // Priority 2: existing server image path (from product data)
     if (path.startsWith('blob:')) {
       return Image.network(path, fit: BoxFit.cover);
     }
