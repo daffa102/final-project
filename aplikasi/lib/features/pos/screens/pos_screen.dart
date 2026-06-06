@@ -141,12 +141,12 @@ class _PosScreenState extends State<PosScreen> {
                       ),
                     ),
 
-                    // Product Grid — padding bawah cukup untuk cart bar
+                    // Product Grid
                     Expanded(
                       child: pos.isLoading && pos.products.isEmpty
                           ? Center(child: CircularProgressIndicator(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)))
                           : GridView.builder(
-                              padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, pos.cart.isEmpty ? 20.h : 90.h),
+                              padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h),
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
                                 childAspectRatio: 0.72,
@@ -159,53 +159,6 @@ class _PosScreenState extends State<PosScreen> {
                     ),
                   ],
                 ),
-
-                // Cart Bar overlay — di atas nav bar floating (tinggi nav bar ~80.h)
-                if (pos.cart.isNotEmpty)
-                  Positioned(
-                    left: 16.w,
-                    right: 16.w,
-                    bottom: 90.h,
-                    child: GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
-                          borderRadius: BorderRadius.circular(16.r),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4))],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${pos.cart.length} item · ${currencyFormat.format(pos.cartTotal)}',
-                                    style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70, fontSize: 12.sp),
-                                  ),
-                                  Text(
-                                    'Lihat keranjang',
-                                    style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 15.sp, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF111727) : Colors.white,
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: Text('Bayar', style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 13.sp, fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             );
           },
