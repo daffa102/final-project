@@ -14,7 +14,7 @@ jobs:
     - name: 📂 Get Latest Code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 2 # Hanya butuh history terbaru untuk diff FTP
+        fetch-depth: 2
 
     - name: 💿 Setup Node.js
       uses: actions/setup-node@v4
@@ -26,45 +26,6 @@ jobs:
         cd final-project
         npm install
         npm run build
-
-    - name: 📝 Create .env for Production
-      run: |
-        {
-          echo "APP_NAME=Kash"
-          echo "APP_ENV=production"
-          echo "APP_KEY=${{ secrets.APP_KEY }}"
-          echo "APP_DEBUG=false"
-          echo "APP_URL=${{ secrets.APP_URL }}"
-          echo ""
-          echo "APP_TIMEZONE=Asia/Jakarta"
-          echo "LOG_CHANNEL=stack"
-          echo "LOG_STACK=single"
-          echo "LOG_LEVEL=error"
-          echo ""
-          echo "DB_CONNECTION=mysql"
-          echo "DB_HOST=${{ secrets.DB_HOST }}"
-          echo "DB_PORT=3306"
-          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}"
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}"
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
-          echo ""
-          echo "SESSION_DRIVER=file"
-          echo "SESSION_LIFETIME=120"
-          echo "SESSION_ENCRYPT=false"
-          echo "SESSION_PATH=/"
-          echo "SESSION_DOMAIN=null"
-          echo ""
-          echo "CACHE_STORE=file"
-          echo "QUEUE_CONNECTION=sync"
-          echo "FILESYSTEM_DISK=local"
-          echo ""
-          echo "MAIL_MAILER=log"
-          echo "VITE_APP_NAME=Kash"
-          echo ""
-          echo "MIDTRANS_SERVER_KEY=${{ secrets.MIDTRANS_SERVER_KEY }}"
-          echo "MIDTRANS_CLIENT_KEY=${{ secrets.MIDTRANS_CLIENT_KEY }}"
-          echo "MIDTRANS_IS_PRODUCTION=${{ secrets.MIDTRANS_IS_PRODUCTION }}"
-        } > final-project/.env
 
     - name: 🚫 Remove files that should not be deployed
       run: |
@@ -91,6 +52,7 @@ jobs:
         server-dir: /
         exclude: |
           **/.git*
+          **/.env
           **/node_modules/**
           **/vendor/**
           **/tests/**
