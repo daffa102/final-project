@@ -257,7 +257,7 @@ class FinanceController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'category' => 'required|in:operational,salary,purchase,other',
+            'category' => 'required|string|in:operational,salary,purchase,other',
             'expense_date' => 'required|date',
             'note' => 'nullable|string'
         ]);
@@ -276,6 +276,44 @@ class FinanceController extends Controller
                 'status' => 'success',
                 'message' => 'Pengeluaran berhasil dicatat',
                 'data' => $expense
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 422);
+        }
+    }
+
+    /**
+     * Store a manual transaction (income) from Flutter app.
+     * Maps to POST /finance/manual-transactions
+     */
+    public function storeManualTransaction(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'income_date' => 'nullable|date',
+            'date' => 'nullable|date',
+            'note' => 'nullable|string',
+        ]);
+
+        $date = $request->input('income_date') ?? $request->input('date') ?? now()->toDateString();
+
+        try {
+            $income = $this->financeService->recordIncome(
+                $request->user()->id,
+                $request->name,
+                $request->amount,
+                $date,
+                $request->note
+            );
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaksi manual berhasil dicatat',
+                'data' => $income
             ], 201);
         } catch (Exception $e) {
             return response()->json([

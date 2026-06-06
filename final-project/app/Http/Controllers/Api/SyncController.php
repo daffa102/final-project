@@ -69,7 +69,7 @@ class SyncController extends Controller
             'date' => 'required|date'
         ]);
 
-        $summary = $this->dailyClosingService->calculateSummary($request->date);
+        $summary = $this->dailyClosingService->calculateSummary($request->date, $request->user()->id);
 
         return response()->json([
             'status' => 'success',

@@ -9,6 +9,7 @@ class ApiService {
   ApiService._internal();
 
   static const String _productionUrl = 'https://kash.dappa.my.id/api';
+  static const String _productionBaseUrl = 'https://kash.dappa.my.id';
 
   static String get baseUrl {
     if (kIsWeb) {
@@ -54,7 +55,8 @@ class ApiService {
     if (path == null || path.isEmpty) return '';
     String cleanPath = path;
 
-    // 1. If it's a full URL, extract the path part
+    // 1. If it's a full URL, extract the path part (ignore the host/scheme from API response
+    //    because APP_URL on server might be http:// while we need https://)
     if (path.startsWith('http')) {
       final uri = Uri.tryParse(path);
       if (uri != null) {
@@ -62,7 +64,6 @@ class ApiService {
         if (storageIndex >= 0) {
           cleanPath = uri.path.substring(storageIndex);
         } else {
-          // Fallback: if it's a URL but doesn't have /storage/, just use the path
           cleanPath = uri.path;
         }
       }
@@ -82,6 +83,8 @@ class ApiService {
       cleanPath = '/storage/$cleanPath';
     }
 
-    return Uri.encodeFull('$baseUrl$cleanPath');
+    // 4. Always use HTTPS base URL (not baseUrl which includes /api)
+    final base = kIsWeb ? 'https://${Uri.base.host}' : _productionBaseUrl;
+    return Uri.encodeFull('$base$cleanPath');
   }
 }
