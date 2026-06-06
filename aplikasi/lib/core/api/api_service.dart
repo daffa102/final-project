@@ -8,14 +8,20 @@ class ApiService {
 
   ApiService._internal();
 
+  static const String _productionUrl = 'http://kash.dappa.my.id/api';
+
   static String get baseUrl {
     if (kIsWeb) {
       // Use Uri.base to get current page URL safely without dart:html
       final String host = Uri.base.host;
-      return 'http://$host:8080/api';
+      // Jika running di localhost (development), arahkan ke server production
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return _productionUrl;
+      }
+      return 'http://$host/api';
     }
-    // Changed from localhost to the computer's local IP so the physical phone can connect
-    return 'http://172.20.3.242:8080/api';
+    // Mobile app selalu pakai URL production
+    return _productionUrl;
   }
 
   final Dio _dio = Dio(
