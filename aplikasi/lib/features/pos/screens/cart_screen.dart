@@ -257,13 +257,16 @@ class CartScreen extends StatelessWidget {
 
   Widget _buildProductImage(Product product, PosProvider pos, bool isDark) {
     final String? path = product.imagePath;
-    if (path == null || path.isEmpty) return Icon(Icons.fastfood, color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05));
+    if (path == null || path.isEmpty) {
+      return Icon(Icons.fastfood, color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05));
+    }
     
     final url = pos.apiService.resolveImageUrl(path);
     return Image.network(
       url, 
-      fit: BoxFit.cover, 
-      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05))
+      fit: BoxFit.cover,
+      loadingBuilder: (ctx, child, progress) => progress == null ? child : const SizedBox.shrink(),
+      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05)),
     );
   }
 

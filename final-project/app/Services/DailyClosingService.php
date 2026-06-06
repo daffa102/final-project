@@ -17,34 +17,44 @@ class DailyClosingService
      * @param string $date The date in Y-m-d format
      * @return array
      */
-    public function calculateSummary(string $date): array
+    public function calculateSummary(string $date, int $userId): array
     {
         $parsedDate = Carbon::parse($date)->format('Y-m-d');
 
-        // Ambil data transaksi hari ini
-        $transactions = DB::table('transactions')
+        // Ambil data transaksi hari ini milik user ini saja
+        $totalSales = DB::table('transactions')
+            ->where('user_id', $userId)
             ->whereDate('created_at', $parsedDate)
-            ->where('status', 'completed');
-            
-        $totalSales = $transactions->sum('total_amount');
-        $totalTrx = $transactions->count();
+            ->where('status', 'completed')
+            ->sum('total_amount');
+
+        $totalTrx = DB::table('transactions')
+            ->where('user_id', $userId)
+            ->whereDate('created_at', $parsedDate)
+            ->where('status', 'completed')
+            ->count();
+
         $totalItems = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->where('transactions.user_id', $userId)
             ->whereDate('transactions.created_at', $parsedDate)
             ->where('transactions.status', 'completed')
             ->sum('quantity');
 
         $cashAmount = DB::table('transactions')
+            ->where('user_id', $userId)
             ->whereDate('created_at', $parsedDate)
             ->where('payment_method', 'cash')
             ->sum('total_amount');
 
         $qrisAmount = DB::table('transactions')
+            ->where('user_id', $userId)
             ->whereDate('created_at', $parsedDate)
             ->where('payment_method', 'qris')
             ->sum('total_amount');
 
         $tfAmount = DB::table('transactions')
+            ->where('user_id', $userId)
             ->whereDate('created_at', $parsedDate)
             ->where('payment_method', 'transfer')
             ->sum('total_amount');
@@ -52,12 +62,14 @@ class DailyClosingService
         $profit = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->where('transactions.user_id', $userId)
             ->whereDate('transactions.created_at', $parsedDate)
             ->where('transactions.status', 'completed')
             ->sum(DB::raw('(transaction_items.selling_price - products.buying_price) * transaction_items.quantity'));
 
         $bestSelling = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->where('transactions.user_id', $userId)
             ->whereDate('transactions.created_at', $parsedDate)
             ->where('transactions.status', 'completed')
             ->select('transaction_items.product_name', DB::raw('SUM(transaction_items.quantity) as total_qty'))
@@ -83,29 +95,29 @@ class DailyClosingService
     {
         $parsedDate = Carbon::parse($date)->format('Y-m-d');
 
-        $existingClosing = DailyClosing::where('closing_date', $parsedDate)->first();
-        if ($existingClosing) {
-            throw new Exception("Tutup buku untuk tanggal {$parsedDate} sudah dilakukan sebelumnya.");
-        }
+        $summary = $this->calculateSummary($parsedDate, $userId);
+        $difference = $actualCash - $summary['cash_amount'];
 
-        $summary = $this->calculateSummary($parsedDate);
-        $difference = $actualCash - $summary['total_sales']; // Using total_sales as expected cash here, or determine logic. 
-        // Note: The Flutter app defines difference as actualCash - expectedCash. 
-        // In the model net_profit is also there.
+        // Gunakan updateOrCreate agar bisa closing ulang di hari yang sama
+        $closing = DailyClosing::updateOrCreate(
+            [
+                'user_id'      => $userId,
+                'closing_date' => $parsedDate,
+            ],
+            [
+                'total_sales'       => $summary['total_sales'],
+                'total_transactions'=> $summary['total_transactions'],
+                'total_items_sold'  => $summary['total_items_sold'],
+                'cash_amount'       => $summary['cash_amount'],
+                'qris_amount'       => $summary['qris_amount'],
+                'transfer_amount'   => $summary['transfer_amount'],
+                'actual_cash'       => $actualCash,
+                'difference'        => $difference,
+                'note'              => $note,
+                'net_profit'        => $summary['net_profit'],
+            ]
+        );
 
-        return DailyClosing::create([
-            'user_id' => $userId,
-            'closing_date' => $parsedDate,
-            'total_sales' => $summary['total_sales'],
-            'total_transactions' => $summary['total_transactions'],
-            'total_items_sold' => $summary['total_items_sold'],
-            'cash_amount' => $summary['cash_amount'],
-            'qris_amount' => $summary['qris_amount'],
-            'transfer_amount' => $summary['transfer_amount'],
-            'actual_cash' => $actualCash,
-            'difference' => $difference,
-            'note' => $note,
-            'net_profit' => $summary['net_profit'],
-        ]);
+        return $closing;
     }
 }

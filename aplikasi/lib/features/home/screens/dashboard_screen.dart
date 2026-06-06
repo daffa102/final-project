@@ -71,20 +71,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hallo ${auth.userName}',
-                          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 16.sp, fontFamily: 'Poppins'),
-                        ),
-                        Text(
-                          'Selamat Datang Kembali',
-                          style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18.sp, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hallo ${auth.userName}',
+                            style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 16.sp, fontFamily: 'Poppins'),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          Text(
+                            'Selamat Datang Kembali',
+                            style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18.sp, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+                          ),
+                        ],
+                      ),
                     ),
+                    SizedBox(width: 8.w),
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         GestureDetector(
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyClosingScreen())),
@@ -197,7 +203,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: PieChart(
                                 PieChartData(
                                   sectionsSpace: 2,
-                                  centerSpaceRadius: 40.r,
+                                  centerSpaceRadius: 35.r,
                                   sections: _generatePieSections(filteredTrx, isDark),
                                   pieTouchData: PieTouchData(enabled: true),
                                 ),
@@ -369,10 +375,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: color,
         value: e.value,
         title: '$percentage%',
-        radius: 80.r,
+        radius: 55.r,
         showTitle: true,
         titleStyle: TextStyle(
-          fontSize: 12.sp, 
+          fontSize: 10.sp, 
           fontWeight: FontWeight.bold, 
           color: Colors.white,
           shadows: const [Shadow(color: Colors.black26, blurRadius: 2)],

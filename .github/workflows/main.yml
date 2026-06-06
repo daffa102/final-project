@@ -1,0 +1,60 @@
+name: Deploy Laravel via FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: 🚀 Deploy Website
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📂 Get Latest Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: 💿 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 🔨 Build Frontend Assets (Vite)
+      run: |
+        cd final-project
+        npm install
+        npm run build
+
+    - name: 🚫 Remove files that should not be deployed
+      run: |
+        rm -f final-project/.gitignore
+        rm -f final-project/.git-ftp-ignore
+        rm -f final-project/phpunit.xml
+        rm -f final-project/vite.config.js
+        rm -f final-project/package.json
+        rm -rf final-project/node_modules
+        rm -rf final-project/tests
+        rm -f final-project/test_auth.php
+        rm -f final-project/test_curl.php
+        rm -f final-project/test_guard.php
+        rm -f final-project/test.txt
+
+    - name: 📂 Sync Files to Server via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        port: 21
+        local-dir: ./final-project/
+        server-dir: /
+        exclude: |
+          **/.git*
+          **/.env
+          **/node_modules/**
+          **/vendor/**
+          **/tests/**
+          **/.idea/**
+          **/.vscode/**

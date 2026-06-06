@@ -1,0 +1,11 @@
+/.git/
+/.github/
+/node_modules/
+/tests/
+/phpunit.xml
+/vite.config.js
+/package.json
+/package-lock.json
+/cacert.pem
+/cacert-new.pem
+/ftp-deploy.cjs

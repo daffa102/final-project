@@ -57,6 +57,7 @@ dev_dependencies:
   freezed: ^2.5.2
   json_serializable: ^6.8.0
   riverpod_generator: ^2.6.3
+  flutter_native_splash: ^2.4.3
 
 flutter:
   uses-material-design: true
@@ -75,3 +76,14 @@ flutter:
     - lib/assets/spinner.json
     # Content wrapper.svg (499KB) intentionally excluded — login built as Flutter widgets
     # progress_activity.svg excluded — replaced by spinner.json
+
+flutter_native_splash:
+  color: "#111727"
+  image: lib/assets/Vector.png
+  color_dark: "#111727"
+  image_dark: lib/assets/Vector.png
+  android_12:
+    image: lib/assets/Vector.png
+    color: "#111727"
+    image_dark: lib/assets/Vector.png
+    color_dark: "#111727"

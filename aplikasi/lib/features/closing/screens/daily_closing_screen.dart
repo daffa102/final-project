@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/closing_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class DailyClosingScreen extends StatefulWidget {
   const DailyClosingScreen({super.key});
@@ -77,7 +78,9 @@ class _DailyClosingScreenState extends State<DailyClosingScreen> {
                 provider.setActualCash(parsed);
                 provider.setNotes(notesController.text);
                 
-                final success = await provider.submitDailyClosing(1); // Kasir Aktif
+                final success = await provider.submitDailyClosing(
+                  context.read<AuthProvider>().userId,
+                );
 
                 if (!mounted) return;
 

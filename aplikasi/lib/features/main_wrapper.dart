@@ -6,7 +6,10 @@ import 'pos/screens/product_management_screen.dart';
 import 'pos/screens/report_screen.dart';
 import 'finance/screens/history_screen.dart';
 import '../core/navigation/navigation_provider.dart';
+import 'pos/providers/pos_provider.dart';
+import 'pos/screens/cart_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
 
 class MainWrapper extends StatefulWidget {
@@ -57,12 +60,13 @@ class _MainWrapperState extends State<MainWrapper> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final nav = context.watch<NavigationProvider>();
+    final pos = context.watch<PosProvider>();
+    final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // ── Background Layer (Pattern appears after login) ─────────────
           const Positioned.fill(
             child: RepaintBoundary(child: _StaticBackground()),
           ),
@@ -74,17 +78,10 @@ class _MainWrapperState extends State<MainWrapper> {
             transitionBuilder: (Widget child, Animation<double> animation) {
               final incomingIndex = (child.key as ValueKey<int>).value;
               final isPush = incomingIndex >= _previousIndex;
-
-              final slideAnim =
-                  Tween<Offset>(
-                    begin: Offset(isPush ? 0.1 : -0.1, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  );
+              final slideAnim = Tween<Offset>(
+                begin: Offset(isPush ? 0.1 : -0.1, 0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
 
               return FadeTransition(
                 opacity: animation,
@@ -99,12 +96,94 @@ class _MainWrapperState extends State<MainWrapper> {
               child: _screens[nav.selectedIndex],
             ),
           ),
+
+          // Unified Bottom Overlay: Cart Bar and Navigation Bar stacked cleanly
           Positioned(
-            left: 20.w,
-            right: 20.w,
-            bottom: 10.h + MediaQuery.of(context).padding.bottom,
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: SafeArea(
-              child: _buildFloatingBottomBar(nav.selectedIndex, theme, isDark),
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (Widget child, Animation<double> animation) {
+                        final offsetAnimation = Tween<Offset>(
+                          begin: const Offset(0.0, 0.4),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ));
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: (nav.selectedIndex == 1 && pos.cart.isNotEmpty)
+                          ? Padding(
+                              key: const ValueKey('cart_bar'),
+                              padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 12.h),
+                              child: GestureDetector(
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
+                                    borderRadius: BorderRadius.circular(16.r),
+                                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 12, offset: const Offset(0, 4))],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${pos.cart.length} item · ${currencyFormat.format(pos.cartTotal)}',
+                                              style: TextStyle(color: isDark ? const Color(0xFF111727).withValues(alpha: 0.7) : Colors.white70, fontSize: 12.sp),
+                                            ),
+                                            Text(
+                                              'Lihat keranjang',
+                                              style: TextStyle(color: isDark ? const Color(0xFF111727) : Colors.white, fontSize: 15.sp, fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? const Color(0xFF111727) : Colors.white,
+                                          borderRadius: BorderRadius.circular(10.r),
+                                        ),
+                                        child: Text(
+                                          'Bayar',
+                                          style: TextStyle(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C), fontSize: 13.sp, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(key: ValueKey('cart_empty')),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 10.h),
+                    child: _buildFloatingBottomBar(nav.selectedIndex, theme, isDark),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

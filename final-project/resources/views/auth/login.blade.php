@@ -571,36 +571,9 @@
         // Show loading on button
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
-
-        // Let form submit normally, but intercept if login succeeds
-        // We'll use a hidden approach: submit via fetch, check result
-        e.preventDefault();
-
-        const formData = new FormData(form);
-
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            redirect: 'manual',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => {
-            if (response.ok || response.status === 302 || response.type === 'opaqueredirect') {
-                // Success! Show animation then redirect
-                showSuccess();
-                setTimeout(() => {
-                    window.location.href = '/admin/dashboard';
-                }, 1500);
-            } else {
-                // Show error — re-submit normally to get Laravel validation errors
-                form.removeEventListener('submit', arguments.callee);
-                form.submit();
-            }
-        })
-        .catch(() => {
-            // Network error fallback — just submit normally
-            form.submit();
-        });
+        // Submit form secara normal (bukan fetch) agar session cookie
+        // diproses dengan benar oleh browser
+        // Biarkan form submit default berjalan (tidak ada e.preventDefault())
     });
 </script>
 

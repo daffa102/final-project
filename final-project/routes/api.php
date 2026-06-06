@@ -12,20 +12,6 @@ use App\Http\Controllers\Api\FinanceController;
 use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\StoreController;
-use Illuminate\Support\Facades\Auth;
-use Laravel\Sanctum\Guard;
-use Illuminate\Auth\RequestGuard;
-
-Auth::extend('sanctum', function ($app, $name, array $config) {
-    return new RequestGuard(
-        function ($request) use ($config) {
-            $guard = new Guard(Auth::getFacadeRoot(), config('sanctum.expiration'), $config['provider']);
-            return $guard->__invoke($request);
-        },
-        $app['request'],
-        Auth::createUserProvider($config['provider'] ?? null)
-    );
-});
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -86,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/finance/expenses', [FinanceController::class, 'storeExpense']);
     Route::get('/finance/export', [FinanceController::class, 'exportPdf']);
     Route::get('/finance/export/excel', [FinanceController::class, 'exportExcel']);
+    Route::post('/finance/manual-transactions', [FinanceController::class, 'storeManualTransaction']);
 
     // Sync & Daily Closing
     Route::get('/sync/pending', [SyncController::class, 'pendingLogs']);
