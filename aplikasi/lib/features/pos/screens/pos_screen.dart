@@ -160,12 +160,12 @@ class _PosScreenState extends State<PosScreen> {
                   ],
                 ),
 
-                // Cart Bar — overlay di paling bawah konten, tidak terpengaruh nav bar
+                // Cart Bar overlay — di atas nav bar floating (tinggi nav bar ~80.h)
                 if (pos.cart.isNotEmpty)
                   Positioned(
                     left: 16.w,
                     right: 16.w,
-                    bottom: 12.h,
+                    bottom: 90.h,
                     child: GestureDetector(
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
                       child: Container(
@@ -334,27 +334,7 @@ class _PosScreenState extends State<PosScreen> {
                 onPressed: () {
                   pos.setQuantity(product, qty);
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).clearSnackBars();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(Icons.check_circle, color: Color(0xFFBEF364), size: 18),
-                          SizedBox(width: 8.w),
-                          Expanded(
-                            child: Text(
-                              'Berhasil menambah $qty ${product.name} ke keranjang',
-                              style: TextStyle(fontSize: 13.sp),
-                            ),
-                          ),
-                        ],
-                      ),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: isDark ? const Color(0xFF1E2938) : Colors.black87,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                    ),
-                  );
+                  // Cart bar sudah update otomatis, tidak perlu snackbar
                 },
                 child: Text('TAMBAH KE KERANJANG', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, letterSpacing: 1)),
               ),
