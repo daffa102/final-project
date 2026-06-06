@@ -453,16 +453,28 @@ class _ReportScreenState extends State<ReportScreen> {
             final response = await api.client.get(
               '/finance/export',
               queryParameters: {'month': now.month, 'year': now.year},
-              options: dio.Options(responseType: dio.ResponseType.bytes),
+              options: dio.Options(
+                responseType: dio.ResponseType.bytes,
+                receiveTimeout: const Duration(seconds: 60),
+              ),
             );
 
+            if (!context.mounted) return;
             await Printing.layoutPdf(
               onLayout: (_) => response.data,
               name: 'Laporan-Laba-Rugi-${now.year}-${now.month}.pdf',
             );
+            scaffoldMessenger.hideCurrentSnackBar();
+          } on dio.DioException catch (e) {
+            final msg = e.response?.statusCode == 500
+                ? 'Server error saat generate PDF. Cek log server.'
+                : 'Gagal export PDF: ${e.message}';
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+            );
           } catch (e) {
             scaffoldMessenger.showSnackBar(
-              SnackBar(content: Text('Gagal export PDF: $e'), behavior: SnackBarBehavior.floating),
+              SnackBar(content: Text('Gagal export PDF: $e'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
           }
         } else if (label == 'Excel') {
@@ -470,20 +482,27 @@ class _ReportScreenState extends State<ReportScreen> {
             final response = await api.client.get(
               '/finance/export/excel',
               queryParameters: {'month': now.month, 'year': now.year},
-              options: dio.Options(responseType: dio.ResponseType.bytes),
+              options: dio.Options(
+                responseType: dio.ResponseType.bytes,
+                receiveTimeout: const Duration(seconds: 60),
+              ),
             );
 
             final bytes = response.data as List<int>;
             final fileName = 'Laporan-Laba-Rugi-${now.year}-${now.month}.xlsx';
-
-            await downloadFile(
-              bytes,
-              fileName,
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            if (!context.mounted) return;
+            await downloadFile(bytes, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            scaffoldMessenger.hideCurrentSnackBar();
+          } on dio.DioException catch (e) {
+            final msg = e.response?.statusCode == 500
+                ? 'Server error saat generate Excel. Cek log server.'
+                : 'Gagal export Excel: ${e.message}';
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
           } catch (e) {
             scaffoldMessenger.showSnackBar(
-              SnackBar(content: Text('Gagal export Excel: $e'), behavior: SnackBarBehavior.floating),
+              SnackBar(content: Text('Gagal export Excel: $e'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
           }
         }
