@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/pos_provider.dart';
 import '../models/product.dart';
-import 'cart_screen.dart';
 import '../../closing/screens/daily_closing_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 
