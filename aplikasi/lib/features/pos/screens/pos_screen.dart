@@ -175,12 +175,13 @@ class _PosScreenState extends State<PosScreen> {
 
           return Padding(
             padding: EdgeInsets.only(
-              bottom: 90.h + MediaQuery.of(context).padding.bottom,
+              bottom: 80.h,
+              left: 20.w,
+              right: 20.w,
             ),
             child: GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20.w),
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C),
@@ -367,7 +368,7 @@ class _PosScreenState extends State<PosScreen> {
                       duration: const Duration(seconds: 2),
                       behavior: SnackBarBehavior.floating,
                       backgroundColor: isDark ? const Color(0xFF1E2938) : Colors.black87,
-                      margin: EdgeInsets.only(bottom: 170.h, left: 20.w, right: 20.w),
+                      margin: EdgeInsets.only(bottom: 250.h, left: 20.w, right: 20.w),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
                   );
