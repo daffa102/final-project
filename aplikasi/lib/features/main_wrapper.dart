@@ -63,9 +63,6 @@ class _MainWrapperState extends State<MainWrapper> {
     final pos = context.watch<PosProvider>();
     final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
 
-    // Tinggi nav bar: padding + 12h vertical + 48w icon + 10h bottom
-    final double navBarHeight = 10.h + MediaQuery.of(context).padding.bottom + 72.h;
-
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
@@ -100,12 +97,12 @@ class _MainWrapperState extends State<MainWrapper> {
             ),
           ),
 
-          // Cart bar — muncul di halaman kasir (index 1), tepat di atas nav bar
+          // Cart bar — tepat di atas nav bar
           if (nav.selectedIndex == 1 && pos.cart.isNotEmpty)
             Positioned(
               left: 16.w,
               right: 16.w,
-              bottom: navBarHeight + 8.h,
+              bottom: 10.h + MediaQuery.of(context).padding.bottom + 72.h + 12.h,
               child: GestureDetector(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
                 child: Container(
