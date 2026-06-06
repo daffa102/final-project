@@ -12,6 +12,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Exception;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class FinanceController extends Controller
 {
@@ -209,12 +213,12 @@ class FinanceController extends Controller
         $rupiah       = '"Rp "#,##0';
         $rupiahBracket= '"(Rp "#,##0")"';
         $boldStyle    = ['font' => ['bold' => true]];
-        $boldCenter   = ['font' => ['bold' => true], 'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]];
-        $DOUBLE       = \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DOUBLE;
-        $THIN         = \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN;
+        $boldCenter   = ['font' => ['bold' => true], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]];
+        $DOUBLE       = Border::BORDER_DOUBLE;
+        $THIN         = Border::BORDER_THIN;
 
         // ── Sheet 1: Laba Rugi ──────────────────────────────────
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet = new Spreadsheet();
         $s1 = $spreadsheet->getActiveSheet()->setTitle('Laba Rugi');
 
         $s1->mergeCells('A1:C1'); $s1->setCellValue('A1', strtoupper($storeName));
@@ -306,7 +310,7 @@ class FinanceController extends Controller
         // ── Output ─────────────────────────────────────────────
         $spreadsheet->setActiveSheetIndex(0);
         $filename = 'laporan-keuangan-' . $month . '-' . $year . '.xlsx';
-        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer   = new Xlsx($spreadsheet);
         $tempPath = tempnam(sys_get_temp_dir(), 'excel_');
         $writer->save($tempPath);
 

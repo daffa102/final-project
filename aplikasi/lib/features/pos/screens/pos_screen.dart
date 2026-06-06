@@ -145,7 +145,12 @@ class _PosScreenState extends State<PosScreen> {
                       child: pos.isLoading && pos.products.isEmpty
                           ? Center(child: CircularProgressIndicator(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)))
                           : GridView.builder(
-                              padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h),
+                              padding: EdgeInsets.fromLTRB(
+                                20.w,
+                                0,
+                                20.w,
+                                pos.cart.isNotEmpty ? 180.h : 95.h,
+                              ),
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
                                 childAspectRatio: 0.72,
