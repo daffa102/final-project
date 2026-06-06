@@ -95,31 +95,29 @@ class DailyClosingService
     {
         $parsedDate = Carbon::parse($date)->format('Y-m-d');
 
-        $existingClosing = DailyClosing::where('user_id', $userId)
-            ->where('closing_date', $parsedDate)
-            ->first();
-        if ($existingClosing) {
-            throw new Exception("Tutup buku untuk tanggal {$parsedDate} sudah dilakukan sebelumnya.");
-        }
-
         $summary = $this->calculateSummary($parsedDate, $userId);
-
-        // difference = uang fisik - uang tunai yang diharapkan (hanya cash, bukan QRIS/transfer)
         $difference = $actualCash - $summary['cash_amount'];
 
-        return DailyClosing::create([
-            'user_id' => $userId,
-            'closing_date' => $parsedDate,
-            'total_sales' => $summary['total_sales'],
-            'total_transactions' => $summary['total_transactions'],
-            'total_items_sold' => $summary['total_items_sold'],
-            'cash_amount' => $summary['cash_amount'],
-            'qris_amount' => $summary['qris_amount'],
-            'transfer_amount' => $summary['transfer_amount'],
-            'actual_cash' => $actualCash,
-            'difference' => $difference,
-            'note' => $note,
-            'net_profit' => $summary['net_profit'],
-        ]);
+        // Gunakan updateOrCreate agar bisa closing ulang di hari yang sama
+        $closing = DailyClosing::updateOrCreate(
+            [
+                'user_id'      => $userId,
+                'closing_date' => $parsedDate,
+            ],
+            [
+                'total_sales'       => $summary['total_sales'],
+                'total_transactions'=> $summary['total_transactions'],
+                'total_items_sold'  => $summary['total_items_sold'],
+                'cash_amount'       => $summary['cash_amount'],
+                'qris_amount'       => $summary['qris_amount'],
+                'transfer_amount'   => $summary['transfer_amount'],
+                'actual_cash'       => $actualCash,
+                'difference'        => $difference,
+                'note'              => $note,
+                'net_profit'        => $summary['net_profit'],
+            ]
+        );
+
+        return $closing;
     }
 }

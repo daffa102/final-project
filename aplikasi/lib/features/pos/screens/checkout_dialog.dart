@@ -31,7 +31,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   @override
   void initState() {
     super.initState();
-    _cashController.text = '0';
+    _cashController.text = '';
     _fetchQris();
   }
 
@@ -454,7 +454,13 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
             controller: controller,
             keyboardType: TextInputType.number,
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18.sp),
-            decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: Colors.white24), border: InputBorder.none, prefixText: 'Rp ', prefixStyle: const TextStyle(color: Color(0xFFBEF364), fontWeight: FontWeight.bold)),
+            decoration: InputDecoration(
+              hintText: '0',
+              hintStyle: const TextStyle(color: Colors.white24),
+              border: InputBorder.none,
+              prefixText: 'Rp ',
+              prefixStyle: const TextStyle(color: Color(0xFFBEF364), fontWeight: FontWeight.bold),
+            ),
             onChanged: (_) => _calculateChange(context.read<PosProvider>().cartTotal),
           ),
         ),
