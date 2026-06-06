@@ -21,6 +21,16 @@ class _ReportScreenState extends State<ReportScreen> {
   DateTime _selectedDate = DateTime.now();
   final NumberFormat currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pos = context.read<PosProvider>();
+      pos.fetchTransactions();
+      pos.fetchManualTransactions();
+    });
+  }
+
   final Map<int, String> indonesianMonths = {
     1: 'Januari', 2: 'Februari', 3: 'Maret', 4: 'April', 5: 'Mei', 6: 'Juni',
     7: 'Juli', 8: 'Agustus', 9: 'September', 10: 'Oktober', 11: 'November', 12: 'Desember'
