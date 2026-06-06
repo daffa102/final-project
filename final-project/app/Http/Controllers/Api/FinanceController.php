@@ -201,91 +201,112 @@ class FinanceController extends Controller
     public function exportExcel(Request $request)
     {
         $userId = $request->user()->id;
-        $month = (int) $request->query('month', now()->month);
-        $year  = (int) $request->query('year', now()->year);
+        $month  = (int) $request->query('month', now()->month);
+        $year   = (int) $request->query('year', now()->year);
+        $data   = $this->getReportData($userId, $month, $year);
 
-        $data = $this->getReportData($userId, $month, $year);
+        $storeName = $data['user']->store_name ?? $data['user']->name ?? 'Nama Toko';
+        $rupiah       = '"Rp "#,##0';
+        $rupiahBracket= '"(Rp "#,##0")"';
+        $boldStyle    = ['font' => ['bold' => true]];
+        $boldCenter   = ['font' => ['bold' => true], 'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]];
+        $DOUBLE       = \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DOUBLE;
+        $THIN         = \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN;
 
+        // ── Sheet 1: Laba Rugi ──────────────────────────────────
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Laporan Keuangan');
+        $s1 = $spreadsheet->getActiveSheet()->setTitle('Laba Rugi');
 
-        // ── Header ──────────────────────────────────────────────
-        $sheet->setCellValue('A1', 'LAPORAN KEUANGAN');
-        $sheet->setCellValue('A2', $data['month']);
-        $sheet->setCellValue('A3', 'Toko: ' . ($data['user']->name ?? '-'));
-        $sheet->mergeCells('A1:C1');
-        $sheet->mergeCells('A2:C2');
-        $sheet->mergeCells('A3:C3');
+        $s1->mergeCells('A1:C1'); $s1->setCellValue('A1', strtoupper($storeName));
+        $s1->mergeCells('A2:C2'); $s1->setCellValue('A2', 'Laporan Laba / Rugi');
+        $s1->mergeCells('A3:C3'); $s1->setCellValue('A3', 'Per ' . $data['month']);
+        $s1->getStyle('A1:C3')->applyFromArray($boldCenter);
+        $s1->getStyle('A1')->getFont()->setSize(13);
 
-        $boldStyle = ['font' => ['bold' => true]];
-        $sheet->getStyle('A1')->applyFromArray(['font' => ['bold' => true, 'size' => 14]]);
-        $sheet->getStyle('A2:A3')->applyFromArray($boldStyle);
+        $r = 5;
 
-        // ── Laba Rugi ───────────────────────────────────────────
-        $row = 5;
-        $sheet->setCellValue("A$row", 'LAPORAN LABA RUGI');
-        $sheet->getStyle("A$row")->applyFromArray($boldStyle);
-        $row++;
+        // Pendapatan
+        $s1->setCellValue("A$r", 'Pendapatan:'); $s1->getStyle("A$r")->applyFromArray($boldStyle); $r++;
+        $s1->setCellValue("A$r", '    Penjualan Bersih');
+        $s1->setCellValue("C$r", $data['penjualan_bersih']); $s1->getStyle("C$r")->getNumberFormat()->setFormatCode($rupiah); $r++; $r++;
 
-        $items = [
-            ['Penjualan Bersih',         $data['penjualan_bersih']],
-            ['HPP',                      $data['hpp']],
-            ['Laba Kotor',               $data['laba_kotor']],
-            ['Total Beban',              $data['total_beban']],
-            ['Laba Bersih',              $data['laba']],
-        ];
-
-        foreach ($items as [$label, $value]) {
-            $sheet->setCellValue("A$row", $label);
-            $sheet->setCellValue("B$row", $value);
-            $sheet->getStyle("B$row")->getNumberFormat()
-                ->setFormatCode('"Rp "#,##0');
-            $row++;
+        // HPP
+        $s1->setCellValue("A$r", 'Harga Pokok Penjualan (HPP):'); $s1->getStyle("A$r")->applyFromArray($boldStyle); $r++;
+        foreach ([
+            ['    Persediaan Awal',              $data['persediaan_awal']],
+            ['    Pembelian',                    $data['pembelian']],
+            ['    Barang tersedia untuk dijual', $data['barang_untuk_dijual']],
+        ] as [$lbl, $val]) {
+            $s1->setCellValue("A$r", $lbl); $s1->setCellValue("B$r", $val);
+            $s1->getStyle("B$r")->getNumberFormat()->setFormatCode($rupiah); $r++;
         }
+        $s1->getStyle("B$r")->getBorders()->getBottom()->setBorderStyle($THIN);
+        $s1->setCellValue("A$r", '    Persediaan Akhir');
+        $s1->setCellValue("B$r", $data['persediaan_akhir']); $s1->getStyle("B$r")->getNumberFormat()->setFormatCode($rupiahBracket); $r++;
+        $s1->setCellValue("A$r", '    Total HPP'); $s1->getStyle("A$r")->applyFromArray($boldStyle);
+        $s1->setCellValue("C$r", $data['hpp']); $s1->getStyle("C$r")->getNumberFormat()->setFormatCode($rupiahBracket);
+        $s1->getStyle("C$r")->getBorders()->getBottom()->setBorderStyle($THIN); $r++; $r++;
 
-        // ── Beban Detail ────────────────────────────────────────
-        $row++;
-        $sheet->setCellValue("A$row", 'DETAIL BEBAN');
-        $sheet->getStyle("A$row")->applyFromArray($boldStyle);
-        $row++;
+        // Laba Kotor
+        $s1->setCellValue("A$r", 'Laba Kotor'); $s1->getStyle("A$r")->applyFromArray($boldStyle);
+        $s1->setCellValue("C$r", $data['laba_kotor']); $s1->getStyle("C$r")->getNumberFormat()->setFormatCode($rupiah);
+        $s1->getStyle("C$r")->getBorders()->getBottom()->setBorderStyle($THIN); $r++; $r++;
 
+        // Beban
+        $s1->setCellValue("A$r", 'Beban Operasional:'); $s1->getStyle("A$r")->applyFromArray($boldStyle); $r++;
         foreach ($data['beban_list'] as $beban) {
-            $sheet->setCellValue("A$row", $beban->name);
-            $sheet->setCellValue("B$row", $beban->total);
-            $sheet->getStyle("B$row")->getNumberFormat()
-                ->setFormatCode('"Rp "#,##0');
-            $row++;
+            $s1->setCellValue("A$r", '    ' . $beban->name);
+            $s1->setCellValue("B$r", (float)$beban->total); $s1->getStyle("B$r")->getNumberFormat()->setFormatCode($rupiah); $r++;
         }
+        if ($data['beban_list']->isEmpty()) { $s1->setCellValue("A$r", '    (Tidak ada beban)'); $r++; }
+        $s1->setCellValue("A$r", '    Total Beban Operasional'); $s1->getStyle("A$r")->applyFromArray($boldStyle);
+        $s1->setCellValue("C$r", $data['total_beban']); $s1->getStyle("C$r")->getNumberFormat()->setFormatCode($rupiahBracket);
+        $s1->getStyle("C$r")->getBorders()->getBottom()->setBorderStyle($THIN); $r++; $r++;
 
-        // ── Perubahan Modal ─────────────────────────────────────
-        $row++;
-        $sheet->setCellValue("A$row", 'PERUBAHAN MODAL');
-        $sheet->getStyle("A$row")->applyFromArray($boldStyle);
-        $row++;
+        // Laba Bersih
+        $s1->setCellValue("A$r", 'Laba Bersih'); $s1->getStyle("A$r")->applyFromArray($boldStyle);
+        $s1->setCellValue("C$r", $data['laba']); $s1->getStyle("C$r")->getNumberFormat()->setFormatCode($rupiah);
+        $s1->getStyle("C$r")->getBorders()->getBottom()->setBorderStyle($DOUBLE);
+        $s1->getStyle("A$r:C$r")->applyFromArray($boldStyle);
 
-        $modalItems = [
-            ['Modal Awal',          $data['modal_awal']],
-            ['Penambahan Modal',    $data['penambahan_modal']],
-            ['Modal Akhir',         $data['modal_akhir']],
-        ];
+        $s1->getColumnDimension('A')->setWidth(38);
+        $s1->getColumnDimension('B')->setWidth(22);
+        $s1->getColumnDimension('C')->setWidth(22);
 
-        foreach ($modalItems as [$label, $value]) {
-            $sheet->setCellValue("A$row", $label);
-            $sheet->setCellValue("B$row", $value);
-            $sheet->getStyle("B$row")->getNumberFormat()
-                ->setFormatCode('"Rp "#,##0');
-            $row++;
-        }
+        // ── Sheet 2: Perubahan Modal ────────────────────────────
+        $s2 = $spreadsheet->createSheet()->setTitle('Perubahan Modal');
+        $s2->mergeCells('A1:C1'); $s2->setCellValue('A1', strtoupper($storeName));
+        $s2->mergeCells('A2:C2'); $s2->setCellValue('A2', 'Laporan Perubahan Modal');
+        $s2->mergeCells('A3:C3'); $s2->setCellValue('A3', 'Per ' . $data['month']);
+        $s2->getStyle('A1:C3')->applyFromArray($boldCenter);
+        $s2->getStyle('A1')->getFont()->setSize(13);
 
-        // ── Auto-size kolom ────────────────────────────────────
-        $sheet->getColumnDimension('A')->setWidth(30);
-        $sheet->getColumnDimension('B')->setWidth(20);
+        $r2 = 5;
+        $s2->setCellValue("A$r2", 'Modal Awal');
+        $s2->setCellValue("C$r2", $data['modal_awal']); $s2->getStyle("C$r2")->getNumberFormat()->setFormatCode($rupiah); $r2++;
+        $s2->setCellValue("A$r2", 'Penambahan Modal:'); $s2->getStyle("A$r2")->applyFromArray($boldStyle); $r2++;
+        $s2->setCellValue("A$r2", '    Laba Bersih');
+        $s2->setCellValue("B$r2", $data['laba']); $s2->getStyle("B$r2")->getNumberFormat()->setFormatCode($rupiah); $r2++;
+        $s2->getStyle("B$r2")->getBorders()->getBottom()->setBorderStyle($THIN);
+        $s2->setCellValue("A$r2", '    Tambahan Modal (Pemasukan Lain)');
+        $s2->setCellValue("B$r2", $data['penambahan_modal']); $s2->getStyle("B$r2")->getNumberFormat()->setFormatCode($rupiah); $r2++;
+        $s2->setCellValue("A$r2", '    Total Penambahan'); $s2->getStyle("A$r2")->applyFromArray($boldStyle);
+        $s2->setCellValue("C$r2", $data['laba'] + $data['penambahan_modal']);
+        $s2->getStyle("C$r2")->getNumberFormat()->setFormatCode($rupiah);
+        $s2->getStyle("C$r2")->getBorders()->getBottom()->setBorderStyle($THIN); $r2 += 2;
+        $s2->setCellValue("A$r2", 'Modal Akhir'); $s2->getStyle("A$r2")->applyFromArray($boldStyle);
+        $s2->setCellValue("C$r2", $data['modal_akhir']); $s2->getStyle("C$r2")->getNumberFormat()->setFormatCode($rupiah);
+        $s2->getStyle("C$r2")->getBorders()->getBottom()->setBorderStyle($DOUBLE);
+        $s2->getStyle("A$r2:C$r2")->applyFromArray($boldStyle);
+
+        $s2->getColumnDimension('A')->setWidth(38);
+        $s2->getColumnDimension('B')->setWidth(22);
+        $s2->getColumnDimension('C')->setWidth(22);
 
         // ── Output ─────────────────────────────────────────────
+        $spreadsheet->setActiveSheetIndex(0);
         $filename = 'laporan-keuangan-' . $month . '-' . $year . '.xlsx';
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-
+        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $tempPath = tempnam(sys_get_temp_dir(), 'excel_');
         $writer->save($tempPath);
 
