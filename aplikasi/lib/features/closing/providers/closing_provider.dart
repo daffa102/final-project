@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../../../core/api/api_service.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/api/sync_service.dart';
 
 class ClosingProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -38,6 +39,9 @@ class ClosingProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      final syncService = SyncService(_apiService, database);
+      await syncService.pushPendingTransactions();
+
       final now = DateTime.now();
       final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final response = await _apiService.client.get('/closing-summary', queryParameters: {'date': today});
@@ -81,6 +85,9 @@ class ClosingProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      final syncService = SyncService(_apiService, database);
+      await syncService.pushPendingTransactions();
+
       final now = DateTime.now();
       // Format tanggal lokal YYYY-MM-DD, hindari masalah timezone UTC vs WIB
       final todayStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
