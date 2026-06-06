@@ -201,14 +201,97 @@ class FinanceController extends Controller
     public function exportExcel(Request $request)
     {
         $userId = $request->user()->id;
-        $month = $request->query('month', now()->month);
-        $year = $request->query('year', now()->year);
-        
+        $month = (int) $request->query('month', now()->month);
+        $year  = (int) $request->query('year', now()->year);
+
         $data = $this->getReportData($userId, $month, $year);
 
-        return response(view('excel.finance_report', $data))
-            ->header('Content-Type', 'application/vnd.ms-excel')
-            ->header('Content-Disposition', 'attachment; filename="laporan-keuangan-'.$month.'-'.$year.'.xls"');
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan Keuangan');
+
+        // ── Header ──────────────────────────────────────────────
+        $sheet->setCellValue('A1', 'LAPORAN KEUANGAN');
+        $sheet->setCellValue('A2', $data['month']);
+        $sheet->setCellValue('A3', 'Toko: ' . ($data['user']->name ?? '-'));
+        $sheet->mergeCells('A1:C1');
+        $sheet->mergeCells('A2:C2');
+        $sheet->mergeCells('A3:C3');
+
+        $boldStyle = ['font' => ['bold' => true]];
+        $sheet->getStyle('A1')->applyFromArray(['font' => ['bold' => true, 'size' => 14]]);
+        $sheet->getStyle('A2:A3')->applyFromArray($boldStyle);
+
+        // ── Laba Rugi ───────────────────────────────────────────
+        $row = 5;
+        $sheet->setCellValue("A$row", 'LAPORAN LABA RUGI');
+        $sheet->getStyle("A$row")->applyFromArray($boldStyle);
+        $row++;
+
+        $items = [
+            ['Penjualan Bersih',         $data['penjualan_bersih']],
+            ['HPP',                      $data['hpp']],
+            ['Laba Kotor',               $data['laba_kotor']],
+            ['Total Beban',              $data['total_beban']],
+            ['Laba Bersih',              $data['laba']],
+        ];
+
+        foreach ($items as [$label, $value]) {
+            $sheet->setCellValue("A$row", $label);
+            $sheet->setCellValue("B$row", $value);
+            $sheet->getStyle("B$row")->getNumberFormat()
+                ->setFormatCode('"Rp "#,##0');
+            $row++;
+        }
+
+        // ── Beban Detail ────────────────────────────────────────
+        $row++;
+        $sheet->setCellValue("A$row", 'DETAIL BEBAN');
+        $sheet->getStyle("A$row")->applyFromArray($boldStyle);
+        $row++;
+
+        foreach ($data['beban_list'] as $beban) {
+            $sheet->setCellValue("A$row", $beban->name);
+            $sheet->setCellValue("B$row", $beban->total);
+            $sheet->getStyle("B$row")->getNumberFormat()
+                ->setFormatCode('"Rp "#,##0');
+            $row++;
+        }
+
+        // ── Perubahan Modal ─────────────────────────────────────
+        $row++;
+        $sheet->setCellValue("A$row", 'PERUBAHAN MODAL');
+        $sheet->getStyle("A$row")->applyFromArray($boldStyle);
+        $row++;
+
+        $modalItems = [
+            ['Modal Awal',          $data['modal_awal']],
+            ['Penambahan Modal',    $data['penambahan_modal']],
+            ['Modal Akhir',         $data['modal_akhir']],
+        ];
+
+        foreach ($modalItems as [$label, $value]) {
+            $sheet->setCellValue("A$row", $label);
+            $sheet->setCellValue("B$row", $value);
+            $sheet->getStyle("B$row")->getNumberFormat()
+                ->setFormatCode('"Rp "#,##0');
+            $row++;
+        }
+
+        // ── Auto-size kolom ────────────────────────────────────
+        $sheet->getColumnDimension('A')->setWidth(30);
+        $sheet->getColumnDimension('B')->setWidth(20);
+
+        // ── Output ─────────────────────────────────────────────
+        $filename = 'laporan-keuangan-' . $month . '-' . $year . '.xlsx';
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'excel_');
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function incomes(Request $request)
