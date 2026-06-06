@@ -145,7 +145,7 @@ class _PosScreenState extends State<PosScreen> {
                       ? Center(child: CircularProgressIndicator(color: isDark ? const Color(0xFFBEF364) : const Color(0xFF4D7B1C)))
                       : RepaintBoundary(
                           child: GridView.builder(
-                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 180.h),
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 220.h),
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 3,
                               childAspectRatio: 0.72,
@@ -174,7 +174,9 @@ class _PosScreenState extends State<PosScreen> {
           final isDark = theme.brightness == Brightness.dark;
 
           return Padding(
-            padding: EdgeInsets.only(bottom: 120.h),
+            padding: EdgeInsets.only(
+              bottom: 90.h + MediaQuery.of(context).padding.bottom,
+            ),
             child: GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
               child: Container(

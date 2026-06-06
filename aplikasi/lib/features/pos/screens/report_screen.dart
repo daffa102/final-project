@@ -442,7 +442,9 @@ class _ReportScreenState extends State<ReportScreen> {
         // Pakai apiService dari PosProvider yang sudah punya token auth
         final pos = context.read<PosProvider>();
         final api = pos.apiService;
-        final now = DateTime.now();
+        // Pakai periode yang sedang ditampilkan, bukan now
+        final exportDate = _selectedDate;
+        final now = exportDate;
         final scaffoldMessenger = ScaffoldMessenger.of(context);
 
         scaffoldMessenger.showSnackBar(
@@ -469,7 +471,9 @@ class _ReportScreenState extends State<ReportScreen> {
           } on dio.DioException catch (e) {
             final msg = e.response?.statusCode == 500
                 ? 'Server error saat generate PDF. Cek log server.'
-                : 'Gagal export PDF: ${e.message}';
+                : e.response?.statusCode == 401
+                    ? 'Sesi habis, silakan login ulang.'
+                    : 'Gagal export PDF: ${e.message}';
             scaffoldMessenger.showSnackBar(
               SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
@@ -497,7 +501,9 @@ class _ReportScreenState extends State<ReportScreen> {
           } on dio.DioException catch (e) {
             final msg = e.response?.statusCode == 500
                 ? 'Server error saat generate Excel. Cek log server.'
-                : 'Gagal export Excel: ${e.message}';
+                : e.response?.statusCode == 401
+                    ? 'Sesi habis, silakan login ulang.'
+                    : 'Gagal export Excel: ${e.message}';
             scaffoldMessenger.showSnackBar(
               SnackBar(content: Text(msg), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
             );
