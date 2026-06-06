@@ -9,6 +9,7 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   String? _token;
+  int? _userId;
   String? _userName;
   String? _userEmail;
   DateTime? _subscriptionUntil;
@@ -16,6 +17,7 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isAuthenticated => _token != null;
+  int get userId => _userId ?? 0;
   String get userName => _userName ?? 'Pengguna';
   String get userEmail => _userEmail ?? 'email@umkm.com';
   
@@ -27,6 +29,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> checkSession() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('auth_token');
+    _userId = prefs.getInt('user_id');
     _userName = prefs.getString('user_name');
     _userEmail = prefs.getString('user_email');
     final subStr = prefs.getString('subscription_until');
@@ -53,6 +56,7 @@ class AuthProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         _token = response.data['access_token'];
+        _userId = response.data['user']['id'] as int?;
         _userName = response.data['user']['name'];
         _userEmail = response.data['user']['email'];
         final subStr = response.data['user']['subscription_until'];
@@ -63,6 +67,7 @@ class AuthProvider with ChangeNotifier {
         // Simpan ke SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', _token!);
+        if (_userId != null) await prefs.setInt('user_id', _userId!);
         await prefs.setString('user_name', _userName!);
         await prefs.setString('user_email', _userEmail!);
         if (subStr != null) {
@@ -139,6 +144,7 @@ class AuthProvider with ChangeNotifier {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         _token = response.data['access_token'];
+        _userId = response.data['user']['id'] as int?;
         _userName = response.data['user']['name'];
         _userEmail = response.data['user']['email'];
         final subStr = response.data['user']['subscription_until'];
@@ -148,6 +154,7 @@ class AuthProvider with ChangeNotifier {
         
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', _token!);
+        if (_userId != null) await prefs.setInt('user_id', _userId!);
         await prefs.setString('user_name', _userName!);
         await prefs.setString('user_email', _userEmail!);
         if (subStr != null) {
@@ -186,11 +193,15 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('user_id');
     await prefs.remove('user_name');
     await prefs.remove('user_email');
+    await prefs.remove('subscription_until');
     _token = null;
+    _userId = null;
     _userName = null;
     _userEmail = null;
+    _subscriptionUntil = null;
     _apiService.clearAuth();
     notifyListeners();
   }

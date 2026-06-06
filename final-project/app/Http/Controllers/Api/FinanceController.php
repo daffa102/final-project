@@ -136,7 +136,7 @@ class FinanceController extends Controller
             ->whereMonth('income_date', $month)
             ->sum('amount');
 
-        // Modal Awal (Diambil dari Laba bulan-bulan sebelumnya + Penambahan Modal sblmnya, sebagai estimasi jika tidak ada tabel Modal)
+        // Modal Awal: akumulasi laba bersih dari bulan-bulan sebelumnya
         $modalAwal = DB::table('transactions')
             ->where('user_id', $userId)
             ->where('status', 'completed')
@@ -147,10 +147,24 @@ class FinanceController extends Controller
                          ->whereMonth('created_at', '<', $month);
                   });
             })
-            ->sum('total_amount') * 0.2; // Mocking 20% margin for initial capital estimate if needed
-        // Untuk laporan yang lebih bersih, kita asumsikan Modal Awal = 0 jika belum ada data riwayat panjang
-        // Tapi kita biarkan saja sebagai estimasi statis
-        $modalAwal = 18000; // Sesuai referensi gambar untuk memperlihatkan formatnya
+            ->sum('total_amount');
+
+        // Kurangi HPP historis untuk mendapatkan estimasi modal dari laba
+        $hppHistoris = DB::table('transaction_items')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->where('transactions.user_id', $userId)
+            ->where('transactions.status', 'completed')
+            ->where(function($q) use ($year, $month) {
+                $q->whereYear('transactions.created_at', '<', $year)
+                  ->orWhere(function($q2) use ($year, $month) {
+                      $q2->whereYear('transactions.created_at', $year)
+                         ->whereMonth('transactions.created_at', '<', $month);
+                  });
+            })
+            ->sum(DB::raw('products.buying_price * transaction_items.quantity'));
+
+        $modalAwal = max(0, (float)($modalAwal - $hppHistoris));
         $modalAkhir = $modalAwal + $laba + $penambahanModal;
 
         return [

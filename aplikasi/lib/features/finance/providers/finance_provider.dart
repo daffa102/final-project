@@ -14,6 +14,7 @@ class FinanceProvider with ChangeNotifier {
   String? _error;
   
   List<dynamic> _expenses = [];
+  List<dynamic> _incomes = [];
   Map<String, dynamic> _summary = {
     'revenue': 0.0,
     'gross_profit': 0.0,
@@ -25,6 +26,7 @@ class FinanceProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<dynamic> get expenses => _expenses;
+  List<dynamic> get incomes => _incomes;
   Map<String, dynamic> get summary => _summary;
 
   // Fetch Laba Rugi Summary (Point 14)
@@ -96,6 +98,58 @@ class FinanceProvider with ChangeNotifier {
       }
     } on DioException catch (e) {
       _error = e.response?.data['message'] ?? 'Gagal menyimpan pengeluaran';
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  // Fetch Incomes
+  Future<void> fetchIncomes() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.client.get('/finance/incomes');
+      if (response.statusCode == 200) {
+        _incomes = response.data['data']['data'] ?? [];
+      }
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // Store Income
+  Future<bool> addIncome({
+    required String name,
+    required double amount,
+    required DateTime date,
+    String? note,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.client.post('/finance/incomes', data: {
+        'name': name,
+        'amount': amount,
+        'income_date': date.toIso8601String().substring(0, 10),
+        'note': note,
+      });
+
+      if (response.statusCode == 201) {
+        await fetchIncomes();
+        return true;
+      }
+    } on DioException catch (e) {
+      _error = e.response?.data['message'] ?? 'Gagal menyimpan pemasukan';
     } catch (e) {
       _error = e.toString();
     }

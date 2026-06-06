@@ -73,6 +73,7 @@ class ClosingProvider with ChangeNotifier {
   }
 
   // 3. Tembakkan ke Server Admin Web untuk dicatat (Daily Closing)
+  // userId diambil dari luar (AuthProvider), BUKAN hardcode
   Future<bool> submitDailyClosing(int userId) async {
     _isLoading = true;
     _error = null;
