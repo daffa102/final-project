@@ -44,18 +44,21 @@ class DailyClosingService
         $cashAmount = DB::table('transactions')
             ->where('user_id', $userId)
             ->whereDate('created_at', $parsedDate)
+            ->where('status', 'completed')
             ->where('payment_method', 'cash')
             ->sum('total_amount');
 
         $qrisAmount = DB::table('transactions')
             ->where('user_id', $userId)
             ->whereDate('created_at', $parsedDate)
+            ->where('status', 'completed')
             ->where('payment_method', 'qris')
             ->sum('total_amount');
 
         $tfAmount = DB::table('transactions')
             ->where('user_id', $userId)
             ->whereDate('created_at', $parsedDate)
+            ->where('status', 'completed')
             ->where('payment_method', 'transfer')
             ->sum('total_amount');
 

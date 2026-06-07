@@ -39,7 +39,7 @@ class SyncService {
          try {
            final response = await _apiService.client.post('/transactions', data: backendPayload);
            
-           if ((response.statusCode == 200 || response.statusCode == 201) && response.data['success'] == true) {
+           if ((response.statusCode == 200 || response.statusCode == 201) && (response.data['success'] == true || response.data['status'] == 'success')) {
               // Jika server menerima, matikan status 'pending' menjadi 'synced'
               await (database.update(database.syncLogs)..where((t) => t.id.equals(log.id)))
                   .write(const SyncLogsCompanion(status: drift.Value('synced')));
