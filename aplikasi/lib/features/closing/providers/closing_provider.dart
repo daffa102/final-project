@@ -20,6 +20,7 @@ class ClosingProvider with ChangeNotifier {
   double _transferAmount = 0.0;
   double _totalSales = 0.0;
   int _totalTrx = 0;
+  double _netProfit = 0.0;
   List<Map<String, dynamic>> _bestSelling = [];
 
   bool get isLoading => _isLoading;
@@ -31,6 +32,7 @@ class ClosingProvider with ChangeNotifier {
   double get transferAmount => _transferAmount;
   double get totalSales => _totalSales;
   int get totalTrx => _totalTrx;
+  double get netProfit => _netProfit;
   List<Map<String, dynamic>> get bestSelling => _bestSelling;
 
   // 1. Hitung uang yang BERHARAP ada di laci (Expected Cash)
@@ -53,6 +55,7 @@ class ClosingProvider with ChangeNotifier {
         _transferAmount = (data['transfer_amount'] ?? 0).toDouble();
         _totalSales = (data['total_sales'] ?? 0).toDouble();
         _totalTrx = (data['total_transactions'] ?? 0).toInt();
+        _netProfit = (data['net_profit'] ?? 0).toDouble();
         final List<dynamic> bs = data['best_selling'] is List ? data['best_selling'] : [];
         _bestSelling = bs.map((item) => {
           'product_name': item['product_name']?.toString() ?? 'Produk',

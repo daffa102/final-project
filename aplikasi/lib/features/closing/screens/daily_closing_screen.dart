@@ -213,6 +213,14 @@ class _DailyClosingScreenState extends State<DailyClosingScreen> {
                         ),
                         SizedBox(height: 16.h),
                         _buildSection(
+                          title: 'Ringkasan Laba',
+                          isDark: isDark,
+                          items: [
+                            _buildRow('Laba Bersih Hari Ini', currencyFormat.format(provider.netProfit), isDark: isDark, isCurrency: true),
+                          ],
+                        ),
+                        SizedBox(height: 16.h),
+                        _buildSection(
                           title: 'Produk Terlaris Hari Ini',
                           isDark: isDark,
                           items: provider.bestSelling.isEmpty
