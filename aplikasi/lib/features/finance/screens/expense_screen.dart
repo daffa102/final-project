@@ -105,26 +105,19 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   validator: (v) => v!.isEmpty ? 'Nama harus diisi' : null,
                 ),
                 SizedBox(height: 12.h),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _amountController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Nominal', prefixText: 'Rp '),
-                        validator: (v) => v!.isEmpty ? 'Nominal harus diisi' : null,
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _selectedCategory,
-                        decoration: const InputDecoration(labelText: 'Kategori'),
-                        items: _categories.map((c) => DropdownMenuItem(value: c['id'], child: Text(c['label']!))).toList(),
-                        onChanged: (v) => setState(() => _selectedCategory = v!),
-                      ),
-                    ),
-                  ],
+                TextFormField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Nominal', prefixText: 'Rp '),
+                  validator: (v) => v!.isEmpty ? 'Nominal harus diisi' : null,
+                ),
+                SizedBox(height: 12.h),
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedCategory,
+                  decoration: const InputDecoration(labelText: 'Kategori'),
+                  isExpanded: true,
+                  items: _categories.map((c) => DropdownMenuItem(value: c['id'], child: Text(c['label']!))).toList(),
+                  onChanged: (v) => setState(() => _selectedCategory = v!),
                 ),
                 SizedBox(height: 16.h),
                 ElevatedButton(
