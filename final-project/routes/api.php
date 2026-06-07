@@ -25,7 +25,57 @@ Route::post('/auth/forgot-password/verify-otp', [AuthController::class, 'verifyO
 Route::post('/auth/forgot-password/reset', [AuthController::class, 'resetPassword']);
 
 Route::get('/test-db', function() {
-    return response()->json(['count' => \App\Models\Product::count()]);
+    // Cari invoice_number yang duplikat
+    $duplicates = \Illuminate\Support\Facades\DB::table('transactions')
+        ->select('invoice_number', \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
+        ->groupBy('invoice_number')
+        ->having('count', '>', 1)
+        ->get();
+
+    $deletedTransactions = 0;
+    $deletedIncomes = 0;
+
+    foreach ($duplicates as $dup) {
+        // Ambil semua ID transaksi dengan invoice_number tersebut, urutkan dari ID terkecil
+        $transactions = \Illuminate\Support\Facades\DB::table('transactions')
+            ->where('invoice_number', $dup->invoice_number)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // Transaksi pertama adalah transaksi asli, sisanya dihapus
+        $duplicateIds = $transactions->slice(1)->pluck('id')->toArray();
+
+        if (!empty($duplicateIds)) {
+            // Hapus items dari transaksi duplikat terlebih dahulu
+            \Illuminate\Support\Facades\DB::table('transaction_items')->whereIn('transaction_id', $duplicateIds)->delete();
+            // Hapus stock movements
+            \Illuminate\Support\Facades\DB::table('stock_movements')->whereIn('transaction_id', $duplicateIds)->delete();
+            // Hapus transaksi duplikat itu sendiri
+            $deletedTransactions += \Illuminate\Support\Facades\DB::table('transactions')->whereIn('id', $duplicateIds)->delete();
+        }
+
+        // Hapus income duplikat
+        $incomeName = "Penjualan: " . $dup->invoice_number;
+        $incomes = \Illuminate\Support\Facades\DB::table('incomes')
+            ->where('name', $incomeName)
+            ->orderBy('id', 'asc')
+            ->get();
+        
+        if ($incomes->count() > 1) {
+            $duplicateIncomeIds = $incomes->slice(1)->pluck('id')->toArray();
+            $deletedIncomes += \Illuminate\Support\Facades\DB::table('incomes')->whereIn('id', $duplicateIncomeIds)->delete();
+        }
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Pembersihan via test-db selesai',
+        'details' => [
+            'duplicate_invoices_found' => $duplicates->count(),
+            'deleted_duplicate_transactions' => $deletedTransactions,
+            'deleted_duplicate_incomes' => $deletedIncomes
+        ]
+    ]);
 });
 
 Route::get('/cleanup-duplicates', function() {
