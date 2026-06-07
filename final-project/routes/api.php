@@ -28,6 +28,64 @@ Route::get('/test-db', function() {
     return response()->json(['count' => \App\Models\Product::count()]);
 });
 
+Route::get('/cleanup-duplicates', function() {
+    $userId = 1; // Sesuaikan dengan user ID Anda, atau ambil semua jika ingin
+    
+    // Cari invoice_number yang duplikat
+    $duplicates = DB::table('transactions')
+        ->select('invoice_number', DB::raw('COUNT(*) as count'))
+        ->groupBy('invoice_number')
+        ->having('count', '>', 1)
+        ->get();
+
+    $deletedTransactions = 0;
+    $deletedIncomes = 0;
+
+    foreach ($duplicates as $dup) {
+        // Ambil semua ID transaksi dengan invoice_number tersebut, urutkan dari ID terkecil
+        $transactions = DB::table('transactions')
+            ->where('invoice_number', $dup->invoice_number)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // Transaksi pertama (indeks 0) adalah transaksi asli, sisanya adalah duplikat yang akan dihapus
+        $original = $transactions[0];
+        $duplicateIds = $transactions->slice(1)->pluck('id')->toArray();
+
+        if (!empty($duplicateIds)) {
+            // Hapus items dari transaksi duplikat terlebih dahulu (foreign key constraint)
+            DB::table('transaction_items')->whereIn('transaction_id', $duplicateIds)->delete();
+            // Hapus stock movements dari transaksi duplikat
+            DB::table('stock_movements')->whereIn('transaction_id', $duplicateIds)->delete();
+            // Hapus transaksi duplikat itu sendiri
+            $deletedTransactions += DB::table('transactions')->whereIn('id', $duplicateIds)->delete();
+        }
+
+        // Hapus income duplikat yang memiliki nama sama dengan invoice_number duplikat
+        // Misal: "Penjualan: INV-20260607-0001"
+        $incomeName = "Penjualan: " . $dup->invoice_number;
+        $incomes = DB::table('incomes')
+            ->where('name', $incomeName)
+            ->orderBy('id', 'asc')
+            ->get();
+        
+        if ($incomes->count() > 1) {
+            $duplicateIncomeIds = $incomes->slice(1)->pluck('id')->toArray();
+            $deletedIncomes += DB::table('incomes')->whereIn('id', $duplicateIncomeIds)->delete();
+        }
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Pembersihan selesai',
+        'details' => [
+            'duplicate_invoices_found' => $duplicates->count(),
+            'deleted_duplicate_transactions' => $deletedTransactions,
+            'deleted_duplicate_incomes' => $deletedIncomes
+        ]
+    ]);
+});
+
 Route::get('/storage/{path}', function ($path) {
     $file = storage_path('app/public/' . $path);
     if (file_exists($file)) {
