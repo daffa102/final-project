@@ -89,6 +89,9 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
       if (paymentData != null && paymentData['redirect_url'] != null) {
         if (!mounted) return;
 
+        final orderId = paymentData['order_id'];
+        bool isPaymentSuccess = false;
+
         if (kIsWeb) {
           // On Flutter Web: open Midtrans URL in new browser tab, then show confirmation
           final uri = Uri.parse(paymentData['redirect_url']);
@@ -97,6 +100,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
           // ignore: use_build_context_synchronously
           final confirmed = await _showWebPaymentConfirmDialog(context);
           if (confirmed != true) return;
+          isPaymentSuccess = true; // User claims paid, we'll verify or just let it process
         } else {
           // On Mobile: use in-app WebView
           final success = await Navigator.push<bool>(
@@ -108,8 +112,37 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
               ),
             ),
           );
-          if (success != true) return;
+          
+          if (success == true) {
+            isPaymentSuccess = true;
+          } else if (orderId != null) {
+            // Jika user menekan tombol silang/kembali tapi sebenarnya sudah bayar di m-banking/e-wallet,
+            // kita lakukan verifikasi status langsung ke API Midtrans.
+            setState(() {
+              _errorMessage = 'Memverifikasi status pembayaran...';
+              _showError = true;
+            });
+            
+            final status = await pos.checkPaymentStatus(orderId.toString());
+            if (status == 'settlement' || status == 'capture') {
+              isPaymentSuccess = true;
+              setState(() {
+                _showError = false;
+                _errorMessage = '';
+              });
+            } else {
+              setState(() {
+                _errorMessage = 'Pembayaran belum diselesaikan. Status: $status';
+                _showError = true;
+              });
+              return;
+            }
+          } else {
+            return;
+          }
         }
+
+        if (!isPaymentSuccess) return;
       } else {
         setState(() {
           _showError = true;

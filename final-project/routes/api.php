@@ -167,6 +167,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Transactions
     Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::get('/transactions/check-status/{orderId}', [TransactionController::class, 'checkPaymentStatus']);
     Route::post('/transactions/initiate-payment', [TransactionController::class, 'initiatePayment']); // MUST be before {id} wildcard
     Route::post('/transactions', [TransactionController::class, 'store']);
     Route::get('/transactions/{id}', [TransactionController::class, 'show']);

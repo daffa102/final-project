@@ -281,6 +281,27 @@ class PosProvider with ChangeNotifier {
     return null;
   }
 
+  Future<String> checkPaymentStatus(String orderId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await apiService.client.get('/transactions/check-status/$orderId');
+      if (response.statusCode == 200) {
+        _isLoading = false;
+        notifyListeners();
+        return response.data['transaction_status'] ?? 'pending';
+      }
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return 'pending';
+  }
+
   Future<bool> processCheckout({required String paymentMethod, required double amountPaid}) async {
     if (_cart.isEmpty) return false;
 

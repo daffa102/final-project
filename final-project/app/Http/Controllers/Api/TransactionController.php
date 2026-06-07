@@ -80,6 +80,33 @@ class TransactionController extends Controller
         }
     }
 
+    public function checkPaymentStatus(string $orderId)
+    {
+        $serverKey = env('MIDTRANS_SERVER_KEY');
+        $isProduction = env('MIDTRANS_IS_PRODUCTION', false);
+        $baseUrl = $isProduction 
+            ? "https://api.midtrans.com/v2/$orderId/status" 
+            : "https://api.sandbox.midtrans.com/v2/$orderId/status";
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withBasicAuth($serverKey, '')->get($baseUrl);
+            $resData = $response->json();
+            $status = $resData['transaction_status'] ?? 'pending';
+
+            return response()->json([
+                'status' => 'success',
+                'transaction_status' => $status,
+                'order_id' => $orderId,
+                'raw_response' => $resData
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function initiatePayment(Request $request)
     {
         $request->validate([
