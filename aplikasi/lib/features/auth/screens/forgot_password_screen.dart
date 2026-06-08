@@ -13,13 +13,20 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _adminEmailController = TextEditingController();
-  final _waNumberController = TextEditingController();
+  final _waNumberController   = TextEditingController();
+
+  @override
+  void dispose() {
+    _adminEmailController.dispose();
+    _waNumberController.dispose();
+    super.dispose();
+  }
 
   void _handleSendOtp() async {
-    final auth = context.read<AuthProvider>();
+    final auth       = context.read<AuthProvider>();
     final adminEmail = _adminEmailController.text.trim();
-    final waNumber = _waNumberController.text.trim();
-    
+    final waNumber   = _waNumberController.text.trim();
+
     if (adminEmail.isEmpty || waNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Silakan lengkapi Email Admin dan Nomor WA')),
@@ -27,10 +34,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
-    final success = await auth.sendOtp(adminEmail, 'whatsapp', phoneNumber: waNumber); 
-    
+    final success = await auth.sendOtp(adminEmail, 'whatsapp', phoneNumber: waNumber);
+
     if (success && mounted) {
-      // Pindah ke layar verifikasi OTP
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -43,7 +49,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error ?? 'Gagal mengirim kode. Pastikan Email Admin terdaftar.')),
+        SnackBar(
+          content: Text(auth.error ?? 'Gagal mengirim kode. Pastikan Email Admin terdaftar.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -57,7 +66,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── Header (Back Button + Title) ──────────────────────────────
+            // ── Header (identik dengan login screen) ──────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
               child: Stack(
@@ -71,7 +80,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                   Text(
-                    'Pemulihan Akun',
+                    'Lupa Password',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18.sp,
@@ -82,7 +91,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ],
               ),
             ),
-            
+
+            // ── Body ──────────────────────────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -90,13 +100,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 32.h),
-                    
+
+                    // Subtitle — ringkas seperti di login
                     Text(
-                      'Gunakan email dari Admin dan nomor WA terdaftar untuk memulihkan akun Anda.',
-                      style: TextStyle(fontSize: 14.sp, color: Colors.black54, fontFamily: 'Poppins'),
+                      'Masukkan email akun dan nomor WhatsApp untuk menerima kode OTP.',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.black45,
+                        fontFamily: 'Poppins',
+                        height: 1.5,
+                      ),
                     ),
+
                     SizedBox(height: 32.h),
 
+                    // ── Email Admin ────────────────────────────────────────
                     Text(
                       'Email Akun (Dari Admin)',
                       style: TextStyle(
@@ -111,10 +129,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       controller: _adminEmailController,
                       keyboardType: TextInputType.emailAddress,
                       style: const TextStyle(color: Colors.black87),
-                      decoration: _buildLightInputDecoration('admin@neopay.com', Icons.email_outlined),
+                      decoration: _buildInputDecoration('admin@neopay.com'),
                     ),
+
                     SizedBox(height: 24.h),
 
+                    // ── Nomor WhatsApp ─────────────────────────────────────
                     Text(
                       'Nomor WhatsApp Terdaftar',
                       style: TextStyle(
@@ -129,23 +149,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       controller: _waNumberController,
                       keyboardType: TextInputType.phone,
                       style: const TextStyle(color: Colors.black87),
-                      decoration: _buildLightInputDecoration('0812XXXXXXXX', Icons.phone_android_outlined),
+                      decoration: _buildInputDecoration('0812XXXXXXXX'),
                     ),
 
-                    SizedBox(height: 48.h),
+                    SizedBox(height: 32.h),
 
+                    // ── Tombol (identik dengan Log In button) ─────────────
                     ElevatedButton(
+                      onPressed: isLoading ? null : _handleSendOtp,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E293B), // Dark Slate
+                        backgroundColor: const Color(0xFF1E293B),
                         minimumSize: Size(double.infinity, 58.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
                         elevation: 0,
                       ),
-                      onPressed: isLoading ? null : _handleSendOtp,
                       child: isLoading
-                          ? SizedBox(width: 24.r, height: 24.r, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          ? SizedBox(
+                              width: 24.r,
+                              height: 24.r,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
                           : Text(
-                              'KIRIM KODE OTP',
+                              'Kirim Kode OTP',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16.sp,
@@ -154,6 +184,47 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
                             ),
                     ),
+
+                    SizedBox(height: 100.h),
+
+                    // ── Footer (identik dengan login screen) ──────────────
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'By Kash, you agree to the',
+                            style: TextStyle(
+                              color: Colors.black45,
+                              fontSize: 13.sp,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                color: Colors.black45,
+                                fontSize: 13.sp,
+                                fontFamily: 'Poppins',
+                              ),
+                              children: const [
+                                TextSpan(
+                                  text: 'Terms',
+                                  style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87),
+                                ),
+                                TextSpan(text: ' and '),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87),
+                                ),
+                                TextSpan(text: '.'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 32.h),
                   ],
                 ),
               ),
@@ -164,14 +235,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  InputDecoration _buildLightInputDecoration(String hint, IconData icon) {
+  // ── Input decoration identik dengan login screen (tanpa prefix icon) ──────
+  InputDecoration _buildInputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Colors.black26),
       filled: true,
       fillColor: Colors.white,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
-      prefixIcon: Icon(icon, color: Colors.black45, size: 22.r),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
         borderSide: const BorderSide(color: Colors.black12),
