@@ -44,7 +44,7 @@ jobs:
     - name: 🌐 Build Flutter Web
       run: |
         cd aplikasi
-        flutter build web --release --base-href "/"
+        flutter build web --release --base-href "/app/"
 
     # ── Copy Flutter build output ke Laravel public/app ───────────────────
     - name: 📋 Copy Flutter web build to Laravel public/app
