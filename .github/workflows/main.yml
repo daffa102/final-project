@@ -76,6 +76,8 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         port: 21
+        timeout: 180000
+        security: loose
         local-dir: ./final-project/
         server-dir: /
         exclude: |
