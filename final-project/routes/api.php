@@ -17,6 +17,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/subscriptions/pay', [SubscriptionController::class, 'pay']);
 Route::post('/subscriptions/checkout', [SubscriptionController::class, 'pay']);
+Route::post('/test-payment-init', [SubscriptionController::class, 'pay']);
 Route::get('/subscriptions/check/{order_id}', [SubscriptionController::class, 'checkStatus']);
 Route::get('/subscriptions/qr/{order_id}', [SubscriptionController::class, 'proxyQr']);
 // OTP & Forgot Password
