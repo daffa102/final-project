@@ -1,13 +1,16 @@
 {
-    "name": "aplikasi",
-    "short_name": "aplikasi",
+    "name": "Kash - Kasir & Keuangan",
+    "short_name": "Kash",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#111727",
+    "theme_color": "#111727",
+    "description": "Aplikasi kasir dan manajemen keuangan toko Anda.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "scope": "/",
+    "lang": "id",
+    "categories": ["finance", "business", "productivity"],
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -30,6 +33,15 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Beranda Kash"
         }
     ]
 }
