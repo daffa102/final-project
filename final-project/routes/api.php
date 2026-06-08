@@ -39,6 +39,37 @@ Route::get('/test-midtrans', function() {
         ]);
     }
 });
+Route::get('/test-midtrans-gopay', function() {
+    try {
+        $serverKey = env('MIDTRANS_SERVER_KEY');
+        $baseUrl = 'https://api.sandbox.midtrans.com/v2/charge';
+        $payload = [
+            'payment_type' => 'gopay',
+            'transaction_details' => [
+                'order_id' => 'TEST-GOPAY-' . time(),
+                'gross_amount' => 10000
+            ],
+            'customer_details' => [
+                'first_name' => 'Kash',
+                'last_name' => 'Customer',
+                'email' => 'customer@kash.id',
+                'phone' => '081234567890',
+            ],
+            'gopay' => ['enable_callback' => true]
+        ];
+        $response = \Illuminate\Support\Facades\Http::timeout(10)
+            ->withBasicAuth($serverKey, '')
+            ->post($baseUrl, $payload);
+        return response()->json([
+            'status' => $response->status(),
+            'body' => $response->json()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ]);
+    }
+});
 
 // OTP & Forgot Password
 Route::post('/auth/forgot-password/send-otp', [AuthController::class, 'sendOtp']);
