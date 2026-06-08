@@ -18,6 +18,27 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/subscriptions/pay', [SubscriptionController::class, 'pay']);
 Route::get('/subscriptions/check/{order_id}', [SubscriptionController::class, 'checkStatus']);
 Route::get('/subscriptions/qr/{order_id}', [SubscriptionController::class, 'proxyQr']);
+Route::get('/test-midtrans', function() {
+    try {
+        $serverKey = env('MIDTRANS_SERVER_KEY');
+        $response = \Illuminate\Support\Facades\Http::timeout(5)
+            ->withBasicAuth($serverKey, '')
+            ->post('https://api.sandbox.midtrans.com/v2/charge', [
+                'transaction_details' => [
+                    'order_id' => 'TEST-' . time(),
+                    'gross_amount' => 10000
+                ]
+            ]);
+        return response()->json([
+            'status' => $response->status(),
+            'body' => $response->json()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ]);
+    }
+});
 
 // OTP & Forgot Password
 Route::post('/auth/forgot-password/send-otp', [AuthController::class, 'sendOtp']);
