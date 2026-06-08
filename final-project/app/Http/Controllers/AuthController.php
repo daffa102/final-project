@@ -85,9 +85,9 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'identifier' => 'required', // email admin
-            'method' => 'required', // whatsapp
-            'phone' => 'required' // nomor wa target
+            'identifier' => 'required|email', // email admin
+            'method'     => 'required',        // whatsapp
+            'phone'      => 'required',        // nomor wa yang diinput user
         ]);
 
         $user = User::where('email', $request->identifier)->first();
@@ -96,53 +96,50 @@ class AuthController extends Controller
             return response()->json(['message' => 'Maaf, email yang Anda masukkan tidak terdaftar.'], 404);
         }
 
-        // Simpan nomor WA ke database agar tersimpan permanen
-        $user->phone = $request->phone;
-        $user->save();
+        // Bersihkan nomor WA yang diinput (hapus non-angka, ubah 08 → 628)
+        $inputPhone = preg_replace('/[^0-9]/', '', $request->phone);
+        if (str_starts_with($inputPhone, '0')) {
+            $inputPhone = '62' . substr($inputPhone, 1);
+        }
 
-        // Generate 6 digit OTP
+        // Bersihkan nomor WA yang tersimpan di database
+        $storedPhone = preg_replace('/[^0-9]/', '', $user->phone ?? '');
+        if (str_starts_with($storedPhone, '0')) {
+            $storedPhone = '62' . substr($storedPhone, 1);
+        }
+
+        // Verifikasi nomor WA cocok dengan yang tersimpan
+        if (empty($storedPhone) || $inputPhone !== $storedPhone) {
+            return response()->json([
+                'message' => 'Nomor WhatsApp tidak sesuai dengan akun. Hubungi Admin.'
+            ], 422);
+        }
+
+        // Generate 6 digit OTP dan simpan ke Cache (berlaku 10 menit)
         $otp = rand(100000, 999999);
-        
-        // Simpan OTP ke Cache (berlaku 10 menit)
         \Illuminate\Support\Facades\Cache::put('otp_' . $user->email, $otp, now()->addMinutes(10));
 
-        // LOGIKA PENGIRIMAN WHATSAPP REAL-TIME
-        // Untuk mengirim pesan WA asli, Anda perlu API Gateway seperti Fonnte, Wablas, atau Twilio.
-        // Berikut adalah contoh simulasi pengiriman:
-        
-        $phone = $request->phone;
-        // Bersihkan karakter non-numerik
-        $phone = preg_replace('/[^0-9]/', '', $phone);
-        // Ubah 08... menjadi 628...
-        if (strpos($phone, '0') === 0) {
-            $phone = '62' . substr($phone, 1);
-        }
+        $message = "Kode OTP Kash Anda adalah: *{$otp}*. JANGAN BERIKAN KODE INI KEPADA SIAPAPUN. Berlaku 10 menit.";
 
-        $message = "Kode OTP NeoPay Anda adalah: *{$otp}*. JANGAN BERIKAN KODE INI KEPADA SIAPAPUN.";
+        // Kirim via Fonnte (token dari .env)
+        $fonnteToken = config('app.fonnte_token', env('FONNTE_TOKEN'));
 
-        // INTEGRASI FONNTE REAL-TIME
-        $token = "Qepy92zjW2izBtXoAdRY";
-        
         try {
             $response = \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => $token
+                'Authorization' => $fonnteToken
             ])->post('https://api.fonnte.com/send', [
-                'target' => $phone,
+                'target'  => $inputPhone,
                 'message' => $message,
             ]);
-            
+
             \Illuminate\Support\Facades\Log::info("FONNTE RESPONSE: " . $response->body());
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("GAGAL KIRIM WA (EXCEPTION): " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("GAGAL KIRIM WA: " . $e->getMessage());
         }
 
-        // Simulasikan berhasil ke user
-        \Illuminate\Support\Facades\Log::info("MENGIRIM WA KE {$phone}: {$message}");
-
         return response()->json([
-            'status' => 'success',
-            'message' => 'Kode OTP telah dikirim ke WhatsApp ' . $phone,
-            'debug_otp' => $otp // Masih saya aktifkan untuk bantuan jika WA gagal
+            'status'  => 'success',
+            'message' => 'Kode OTP telah dikirim ke WhatsApp ' . $inputPhone,
         ]);
     }
 
