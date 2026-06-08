@@ -19,7 +19,8 @@ class ApiService {
       if (host == 'localhost' || host == '127.0.0.1') {
         return _productionUrl;
       }
-      return 'http://$host/api';
+      // Selalu gunakan https:// untuk menghindari mixed content error di PWA
+      return 'https://$host/api';
     }
     // Mobile app selalu pakai URL production
     return _productionUrl;
@@ -84,7 +85,12 @@ class ApiService {
     }
 
     // 4. Always use HTTPS base URL (not baseUrl which includes /api)
-    final base = kIsWeb ? 'https://${Uri.base.host}' : _productionBaseUrl;
+    final String webHost = Uri.base.host;
+    final base = kIsWeb
+        ? (webHost == 'localhost' || webHost == '127.0.0.1'
+            ? _productionBaseUrl
+            : 'https://$webHost')
+        : _productionBaseUrl;
     return Uri.encodeFull('$base$cleanPath');
   }
 }
