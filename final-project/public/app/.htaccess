@@ -1,0 +1,31 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /app/
+
+    # Jika file/folder nyata ada, sajikan langsung
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Semua route Flutter → index.html (SPA fallback)
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# Enable GZIP compression untuk Flutter canvaskit/wasm
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/wasm
+</IfModule>
+
+# Cache static assets Flutter
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/wasm "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 year"
+</IfModule>
+
+# Flutter CanvasKit WASM headers
+<FilesMatch "\.wasm$">
+    Header set Content-Type "application/wasm"
+</FilesMatch>

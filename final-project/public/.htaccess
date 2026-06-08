@@ -18,6 +18,10 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
+    # Bypass /app/** — Flutter web static files (jangan diarahkan ke index.php)
+    RewriteCond %{REQUEST_URI} ^/app/.*$
+    RewriteRule ^ - [L]
+
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f

@@ -1,4 +1,4 @@
-name: Deploy Laravel via FTP
+name: Deploy Laravel + Flutter Web via FTP
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   web-deploy:
-    name: 🚀 Deploy Website
+    name: 🚀 Build & Deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -16,6 +16,7 @@ jobs:
       with:
         fetch-depth: 2
 
+    # ── Build Laravel Frontend Assets ──────────────────────────────────────
     - name: 💿 Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -27,6 +28,32 @@ jobs:
         npm install
         npm run build
 
+    # ── Build Flutter Web ──────────────────────────────────────────────────
+    - name: 💿 Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.4'
+        channel: 'stable'
+        cache: true
+
+    - name: 📦 Get Flutter dependencies
+      run: |
+        cd aplikasi
+        flutter pub get
+
+    - name: 🌐 Build Flutter Web
+      run: |
+        cd aplikasi
+        flutter build web --release --base-href "/"
+
+    # ── Copy Flutter build output ke Laravel public/app ───────────────────
+    - name: 📋 Copy Flutter web build to Laravel public/app
+      run: |
+        rm -rf final-project/public/app
+        mkdir -p final-project/public/app
+        cp -r aplikasi/build/web/. final-project/public/app/
+
+    # ── Cleanup files that should not be deployed ─────────────────────────
     - name: 🚫 Remove files that should not be deployed
       run: |
         rm -f final-project/.gitignore
@@ -41,6 +68,7 @@ jobs:
         rm -f final-project/test_guard.php
         rm -f final-project/test.txt
 
+    # ── Deploy Laravel + Flutter ke Server via FTP ────────────────────────
     - name: 📂 Sync Files to Server via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
